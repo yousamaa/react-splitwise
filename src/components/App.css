@@ -1,0 +1,7 @@
+.outer-div{
+  min-height: 100vh;
+}
+
+.inner-div{
+  max-width: 400px;
+}
