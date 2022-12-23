@@ -6,6 +6,7 @@ import { createUserWithEmailAndPassword,
          signOut,
          updateEmail as newEmail,
          updatePassword as newPassword } from "firebase/auth"
+
 import { auth } from "../firebase"
 
 const AuthContext = React.createContext()
