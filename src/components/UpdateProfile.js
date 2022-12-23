@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom"
 
 import { useAuth } from "../contexts/AuthContext"
 
-export default function UpdateProfile() {
+const UpdateProfile = () => {
   const emailRef = useRef()
   const passwordRef = useRef()
   const passwordConfirmRef = useRef()
@@ -86,3 +86,5 @@ export default function UpdateProfile() {
     </>
   )
 }
+
+export default UpdateProfile

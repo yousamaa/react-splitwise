@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom"
 
 import { useAuth } from "../contexts/AuthContext"
 
-export default function Login() {
+const Login = () => {
   const emailRef = useRef()
   const passwordRef = useRef()
   const { login } = useAuth()
@@ -57,3 +57,5 @@ export default function Login() {
     </>
   )
 }
+
+export default Login

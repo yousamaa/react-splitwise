@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom"
 
 import { useAuth } from "../contexts/AuthContext"
 
-export default function Dashboard() {
+const Dashboard = () => {
   const [error, setError] = useState("")
   const { currentUser, logout } = useAuth()
   const navigate = useNavigate()
@@ -40,3 +40,5 @@ export default function Dashboard() {
     </>
   )
 }
+
+export default Dashboard
