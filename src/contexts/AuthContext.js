@@ -21,29 +21,17 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState({})
   const [loading, setLoading] = useState(true)
 
-  const signup = (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password)
-  }
+  const signup = (email, password) => createUserWithEmailAndPassword(auth, email, password)
 
-  const login = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password)
-  }
+  const login = (email, password) => signInWithEmailAndPassword(auth, email, password)
 
-  const logout = () => {
-    return signOut(auth)
-  }
+  const logout = () => signOut(auth)
 
-  const resetPassword = email => {
-    return sendPasswordResetEmail(auth, email)
-  }
+  const resetPassword = email => sendPasswordResetEmail(auth, email)
 
-  const updateEmail = email => {
-    return newEmail(currentUser, email)
-  }
+  const updateEmail = email => newEmail(currentUser, email)
 
-  const updatePassword = password => {
-    return newPassword(currentUser, password)
-  }
+  const updatePassword = password => newPassword(currentUser, password)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, user => {

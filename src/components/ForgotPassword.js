@@ -11,7 +11,7 @@ const ForgotPassword = () => {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(e) {
+  const handleSubmit = async e => {
     e.preventDefault()
 
     try {

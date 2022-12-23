@@ -13,10 +13,10 @@ const UpdateProfile = () => {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  function handleSubmit(e) {
+  const handleSubmit = e => {
     e.preventDefault()
     if (passwordRef.current.value !== passwordConfirmRef.current.value) {
-      return setError('Passwords do not match')
+      setError('Passwords do not match')
     }
 
     const promises = []
@@ -31,15 +31,9 @@ const UpdateProfile = () => {
     }
 
     Promise.all(promises)
-      .then(() => {
-        navigate('/')
-      })
-      .catch(() => {
-        setError('Failed to update account')
-      })
-      .finally(() => {
-        setLoading(false)
-      })
+      .then(() => navigate('/'))
+      .catch(() => setError('Failed to update account'))
+      .finally(() => setLoading(false))
   }
 
   return (

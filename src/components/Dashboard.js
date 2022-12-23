@@ -9,7 +9,7 @@ const Dashboard = () => {
   const { currentUser, logout } = useAuth()
   const navigate = useNavigate()
 
-  async function handleLogout() {
+  const handleLogout = async () => {
     setError('')
 
     try {

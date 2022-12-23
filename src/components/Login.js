@@ -12,7 +12,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  async function handleSubmit(e) {
+  const handleSubmit = async e => {
     e.preventDefault()
 
     try {
