@@ -15,10 +15,13 @@ const SidebarItem = ({ name, icon }) => {
     max-width: 80%;
     padding-left: 1vw;
   `
+  const Paragragh = styled.p`
+    font-size: 1vw;
+  `
   return (
     <SideBarItemMain>
       {icon}
-      <p className='sidebaritem-text'>{name}</p>
+      <Paragragh>{name}</Paragragh>
     </SideBarItemMain>
   )
 }

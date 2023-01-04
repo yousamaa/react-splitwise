@@ -2,7 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 
 // eslint-disable-next-line react/prop-types
-const UserItem = ({ name, icon, lastName }) => {
+const UserItem = ({ email, icon }) => {
   const UserItemMain = styled.div`
     display: flex;
     flex-direction: row;
@@ -15,15 +15,15 @@ const UserItem = ({ name, icon, lastName }) => {
     min-width: 17vw;
     max-width: 80%;
   `
+  const Paragragh = styled.p`
+    color: white;
+    font-size: 1vw;
+  `
   return (
     <UserItemMain>
       {icon}
       <div>
-        <p className='white sidebaritem-text'>
-          {name}
-          <br />
-          {lastName}
-        </p>
+        <Paragragh>{email}</Paragragh>
       </div>
     </UserItemMain>
   )
