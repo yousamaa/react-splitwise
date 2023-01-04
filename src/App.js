@@ -1,6 +1,6 @@
 import React from 'react'
-import { Container } from 'react-bootstrap'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import styled from 'styled-components'
 
 import { AuthProvider } from './contexts/AuthContext'
 import Signup from './components/authentication/Signup'
@@ -10,40 +10,72 @@ import PrivateRoute from './components/PrivateRoute'
 import ForgotPassword from './components/authentication/ForgotPassword'
 import UpdateProfile from './components/authentication/UpdateProfile'
 
-import './App.css'
-
 const App = () => {
+  const DashboardWrapper = styled.section`
+    display: flex;
+  `
+
+  const LoginWrapper = styled.section`
+    width: 22.5%;
+    height: 50%;
+    overflow: auto;
+    margin: auto;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+  `
   return (
-    <Container className='d-flex align-items-center justify-content-center outer-div'>
-      <div className='w-100 inner-div'>
-        <Router>
-          <AuthProvider>
-            <Routes>
-              <Route
-                exact
-                path='/'
-                element={
-                  <PrivateRoute>
-                    <Dashboard />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path='/update-profile'
-                element={
-                  <PrivateRoute>
-                    <UpdateProfile />
-                  </PrivateRoute>
-                }
-              />
-              <Route path='/signup' element={<Signup />} />
-              <Route path='/login' element={<Login />} />
-              <Route path='/forgot-password' element={<ForgotPassword />} />
-            </Routes>
-          </AuthProvider>
-        </Router>
-      </div>
-    </Container>
+    <Router>
+      <AuthProvider>
+        <Routes>
+          <Route
+            exact
+            path='/'
+            element={
+              <PrivateRoute>
+                <DashboardWrapper>
+                  <Dashboard />
+                </DashboardWrapper>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path='/update-profile'
+            element={
+              <PrivateRoute>
+                <UpdateProfile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path='/signup'
+            element={
+              <LoginWrapper>
+                <Signup />
+              </LoginWrapper>
+            }
+          />
+          <Route
+            path='/login'
+            element={
+              <LoginWrapper>
+                <Login />
+              </LoginWrapper>
+            }
+          />
+          <Route
+            path='/forgot-password'
+            element={
+              <LoginWrapper>
+                <ForgotPassword />
+              </LoginWrapper>
+            }
+          />
+        </Routes>
+      </AuthProvider>
+    </Router>
   )
 }
 
