@@ -11,10 +11,6 @@ import ForgotPassword from './components/authentication/ForgotPassword'
 import UpdateProfile from './components/authentication/UpdateProfile'
 
 const App = () => {
-  const DashboardWrapper = styled.section`
-    display: flex;
-  `
-
   const LoginWrapper = styled.section`
     width: 22.5%;
     height: 50%;
@@ -35,9 +31,7 @@ const App = () => {
             path='/'
             element={
               <PrivateRoute>
-                <DashboardWrapper>
-                  <Dashboard />
-                </DashboardWrapper>
+                <Dashboard />
               </PrivateRoute>
             }
           />
@@ -45,7 +39,9 @@ const App = () => {
             path='/update-profile'
             element={
               <PrivateRoute>
-                <UpdateProfile />
+                <LoginWrapper>
+                  <UpdateProfile />
+                </LoginWrapper>
               </PrivateRoute>
             }
           />
