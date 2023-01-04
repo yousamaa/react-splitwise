@@ -24,7 +24,7 @@ const NavBar = () => {
     <div>
       <Navbar bg='primary' variant='dark'>
         <Container>
-          <Navbar.Brand href='#home'>Splitwise</Navbar.Brand>
+          <Navbar.Brand>Splitwise</Navbar.Brand>
           <Nav className='me-auto'>
             <Nav.Link onClick={handleLogout}>Log Out</Nav.Link>
             <Nav.Link href='#features'>Features</Nav.Link>

@@ -1,14 +1,35 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { Person, People } from 'react-bootstrap-icons'
+import { collection, getDocs } from 'firebase/firestore'
 
-import UserItem from './UserItem'
+import UserItem from './sidebar/UserItem'
 import { useAuth } from '../contexts/AuthContext'
-import SidebarItem from './SidebarItem'
+import SidebarItem from './sidebar/SidebarItem'
+import { database } from '../firebase'
 
 const Sidebar = () => {
+  const [users, setUsers] = useState([])
+  const usersCollectionRef = collection(database, 'users')
   const { currentUser } = useAuth()
-  const { groups, setGroups } = useState([])
+  //const { groups, setGroups } = useState([{ id: 1, name: 'Hunza Tour' }])
+  // setGroups([
+  //   { id: 1, name: 'Hunza Tour' },
+  //   { id: 2, name: 'Kashmir Tour' }
+  // ])
+
+  useEffect(() => {
+    const getUsers = async () => {
+      const data = await getDocs(usersCollectionRef)
+      setUsers(
+        data.docs.map(doc => ({
+          ...doc.data(),
+          id: doc.id
+        }))
+      )
+    }
+    getUsers()
+  }, [])
 
   const SidebarMain = styled.div`
     display: flex;
@@ -58,10 +79,8 @@ const Sidebar = () => {
         <Sidebaritems>
           <SidebarGroup>Groups</SidebarGroup>
           <Groups>
-            {groups?.map(group => {
-              return (
-                <SidebarItem name={group.name} id={group.id} key={group.id} icon={<People />} />
-              )
+            {users?.map(user => {
+              return <SidebarItem name={user.name} id={user.id} key={user.id} icon={<People />} />
             })}
           </Groups>
         </Sidebaritems>
