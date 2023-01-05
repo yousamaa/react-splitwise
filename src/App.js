@@ -12,15 +12,15 @@ import UpdateProfile from './components/authentication/UpdateProfile'
 
 const App = () => {
   const LoginWrapper = styled.section`
-    width: 22.5%;
-    height: 50%;
-    overflow: auto;
-    margin: auto;
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
+    // width: 22.5%;
+    // height: 50%;
+    // overflow: auto;
+    // margin: auto;
+    // position: absolute;
+    // top: 0;
+    // left: 0;
+    // bottom: 0;
+    // right: 0;
   `
   return (
     <Router>
