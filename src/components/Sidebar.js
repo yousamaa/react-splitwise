@@ -13,8 +13,8 @@ import MainLogo from './sidebar/MainLogo'
 import { database } from '../firebase'
 
 const Sidebar = () => {
-  const [users, setUsers] = useState([])
-  const usersCollectionRef = collection(database, 'users')
+  const [groups, setGroups] = useState([])
+  const groupsCollectionRef = collection(database, 'groups')
   const { currentUser, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -24,16 +24,16 @@ const Sidebar = () => {
   }
 
   useEffect(() => {
-    const getUsers = async () => {
-      const data = await getDocs(usersCollectionRef)
-      setUsers(
+    const getGroups = async () => {
+      const data = await getDocs(groupsCollectionRef)
+      setGroups(
         data.docs.map(doc => ({
           ...doc.data(),
           id: doc.id
         }))
       )
     }
-    getUsers()
+    getGroups()
   }, [])
 
   const SidebarMain = styled.div`
@@ -100,12 +100,12 @@ const Sidebar = () => {
         <Sidebaritems>
           <SidebarGroup>Groups</SidebarGroup>
           <Groups>
-            {users?.map(user => {
+            {groups?.map(group => {
               return (
                 <SidebarItem
-                  name={user.name}
-                  id={user.id}
-                  key={user.id}
+                  name={group.name}
+                  id={group.id}
+                  key={group.id}
                   icon={<PeopleOutlineIcon />}
                 />
               )
