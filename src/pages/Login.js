@@ -11,6 +11,7 @@ import Typography from '@mui/material/Typography'
 import Container from '@mui/material/Container'
 import Alert from '@mui/material/Alert'
 
+import MainLogo from '../components/sidebar/MainLogo'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function Login() {
@@ -39,13 +40,14 @@ export default function Login() {
       <CssBaseline />
       <Box
         sx={{
-          marginTop: 25,
+          marginTop: 15,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center'
         }}
       >
-        <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+        <MainLogo />
+        <Avatar sx={{ bgcolor: 'secondary.main' }}>
           <LockOutlinedIcon />
         </Avatar>
         <Typography component='h1' variant='h5'>
