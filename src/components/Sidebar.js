@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { Person, People, X } from 'react-bootstrap-icons'
 import { collection, getDocs } from 'firebase/firestore'
+import { useNavigate } from 'react-router-dom'
+import { Alert } from 'react-bootstrap'
 
 import UserItem from './sidebar/UserItem'
 import { useAuth } from '../contexts/AuthContext'
@@ -12,7 +14,9 @@ import { database } from '../firebase'
 const Sidebar = () => {
   const [users, setUsers] = useState([])
   const usersCollectionRef = collection(database, 'users')
-  const { currentUser } = useAuth()
+  const { currentUser, logout } = useAuth()
+  const [error, setError] = useState('')
+  const navigate = useNavigate()
 
   const handleLogout = async () => {
     setError('')
@@ -93,6 +97,7 @@ const Sidebar = () => {
   `
   return (
     <SidebarMain>
+      {error && <Alert variant='danger'>{error}</Alert>}
       <MainLogo />
       <Sidebaritem>
         <UserItem
