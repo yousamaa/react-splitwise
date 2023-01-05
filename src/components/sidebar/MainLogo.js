@@ -1,6 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
-import { Wallet } from 'react-bootstrap-icons'
+import BalanceIcon from '@mui/icons-material/Balance'
+
 const MainLogo = () => {
   const MainlogoMain = styled.div`
     display: flex;
@@ -15,7 +16,7 @@ const MainLogo = () => {
   `
   return (
     <MainlogoMain>
-      <Wallet style={{ fontSize: '40px' }} />
+      <BalanceIcon style={{ fontSize: '40px' }} />
       <Paragraph>Splitwise</Paragraph>
     </MainlogoMain>
   )

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
-import { Person, People, X } from 'react-bootstrap-icons'
+import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline'
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
+import LogoutIcon from '@mui/icons-material/Logout'
 import { collection, getDocs } from 'firebase/firestore'
 import { useNavigate } from 'react-router-dom'
-import { Alert } from 'react-bootstrap'
 
 import UserItem from './sidebar/UserItem'
 import { useAuth } from '../contexts/AuthContext'
@@ -15,18 +16,11 @@ const Sidebar = () => {
   const [users, setUsers] = useState([])
   const usersCollectionRef = collection(database, 'users')
   const { currentUser, logout } = useAuth()
-  const [error, setError] = useState('')
   const navigate = useNavigate()
 
   const handleLogout = async () => {
-    setError('')
-
-    try {
-      await logout()
-      navigate('/login')
-    } catch {
-      setError('Failed to log out')
-    }
+    await logout()
+    navigate('/login')
   }
 
   useEffect(() => {
@@ -97,24 +91,30 @@ const Sidebar = () => {
   `
   return (
     <SidebarMain>
-      {error && <Alert variant='danger'>{error}</Alert>}
       <MainLogo />
       <Sidebaritem>
         <UserItem
           email={currentUser.email}
-          icon={<Person style={{ color: 'white', fontSize: '30px' }} />}
+          icon={<PersonOutlineIcon style={{ color: 'white', fontSize: '30px' }} />}
         ></UserItem>
         <Sidebaritems>
           <SidebarGroup>Groups</SidebarGroup>
           <Groups>
             {users?.map(user => {
-              return <SidebarItem name={user.name} id={user.id} key={user.id} icon={<People />} />
+              return (
+                <SidebarItem
+                  name={user.name}
+                  id={user.id}
+                  key={user.id}
+                  icon={<PeopleOutlineIcon />}
+                />
+              )
             })}
           </Groups>
         </Sidebaritems>
       </Sidebaritem>
       <LogoutButton onClick={handleLogout}>
-        <X style={{ fontSize: '19px' }} />
+        <LogoutIcon style={{ fontSize: '19px' }} />
         <p>Logout</p>
       </LogoutButton>
     </SidebarMain>
