@@ -1,22 +1,29 @@
 import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
-import { Person, People } from 'react-bootstrap-icons'
+import { Person, People, X } from 'react-bootstrap-icons'
 import { collection, getDocs } from 'firebase/firestore'
 
 import UserItem from './sidebar/UserItem'
 import { useAuth } from '../contexts/AuthContext'
 import SidebarItem from './sidebar/SidebarItem'
+import MainLogo from './sidebar/MainLogo'
 import { database } from '../firebase'
 
 const Sidebar = () => {
   const [users, setUsers] = useState([])
   const usersCollectionRef = collection(database, 'users')
   const { currentUser } = useAuth()
-  //const { groups, setGroups } = useState([{ id: 1, name: 'Hunza Tour' }])
-  // setGroups([
-  //   { id: 1, name: 'Hunza Tour' },
-  //   { id: 2, name: 'Kashmir Tour' }
-  // ])
+
+  const handleLogout = async () => {
+    setError('')
+
+    try {
+      await logout()
+      navigate('/login')
+    } catch {
+      setError('Failed to log out')
+    }
+  }
 
   useEffect(() => {
     const getUsers = async () => {
@@ -69,8 +76,24 @@ const Sidebar = () => {
     gap: 10px;
     justify-content: center;
   `
+
+  const LogoutButton = styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 1vw;
+    text-align: center;
+    background-color: #f7f2f9;
+    border-radius: 1vw;
+    padding-left: 1vw;
+    min-width: 17vw;
+    max-width: 80%;
+    cursor: pointer;
+  `
   return (
     <SidebarMain>
+      <MainLogo />
       <Sidebaritem>
         <UserItem
           email={currentUser.email}
@@ -85,6 +108,10 @@ const Sidebar = () => {
           </Groups>
         </Sidebaritems>
       </Sidebaritem>
+      <LogoutButton onClick={handleLogout}>
+        <X style={{ fontSize: '19px' }} />
+        <p>Logout</p>
+      </LogoutButton>
     </SidebarMain>
   )
 }
