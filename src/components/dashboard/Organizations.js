@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable max-lines */
 /* eslint-disable react/jsx-no-useless-fragment */
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import AddIcon from '@mui/icons-material/Add'
 import Box from '@mui/material/Box'
@@ -20,83 +20,6 @@ import Final from './Final'
 import './index.css'
 
 export default function Organizations({ name, id }) {
-  const [expenses, setExpenses] = useState()
-  const [open, setOpen] = useState(false)
-  const [split, setSplit] = useState(false)
-  const [totalExpense, setTotalExpense] = useState(0)
-  const [finalSplit, setFinalSplit] = useState([])
-  const [users, setUsers] = useState()
-
-  const [expName, setExpName] = useState()
-  const [expAmt, setExpAmt] = useState()
-  const [expPaidBy, setExpPaidBy] = useState()
-  const [expGrp, setExpGrp] = useState()
-  const [personName, setPersonName] = useState([])
-  var usrSplitBtw = []
-
-  useEffect(() => {
-    async function fetchData() {
-      let expenses = await fetch(`https://splitwise-apiv1.herokuapp.com/groups/expenses/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        }
-      })
-      expenses = await expenses.json()
-      setExpenses(expenses)
-      for (var i = 0; i < expenses.length; i++) {
-        setTotalExpense(totalExpense + expenses[i].expAmt)
-      }
-      if (users == null) {
-        let paidby = await fetch(`https://splitwise-apiv1.herokuapp.com/groups/users/${id}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-          }
-        })
-        paidby = await paidby.json()
-        setUsers(paidby)
-        setSelectUsers(paidby)
-      }
-    }
-    fetchData()
-  }, [])
-
-  const handleChange = event => {
-    setPersonName(
-      typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value
-    )
-  }
-
-  const openBox = grpId => {
-    setSplit(false)
-    setExpGrp(grpId)
-    setOpen(true)
-  }
-
-  async function gameOn() {
-    if (split) {
-      setSplit(false)
-    } else {
-      let paidby = await fetch(`https://splitwise-apiv1.herokuapp.com/FinalSplit/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        }
-      })
-      paidby = await paidby.json()
-      if (paidby != null) {
-        setFinalSplit(paidby)
-        setSplit(true)
-      } else {
-        return
-      }
-    }
-  }
-
   const style = {
     position: 'absolute',
     top: '50%',
@@ -106,36 +29,6 @@ export default function Organizations({ name, id }) {
     bgcolor: 'white',
     boxShadow: 24,
     p: 4
-  }
-  async function createExpense() {
-    setOpen(false)
-    //credentials
-    for (var i = 0; i < personName.length; i++) {
-      usrSplitBtw.push({ id: personName[i] })
-    }
-
-    let item = {
-      expName: expName,
-      expAmt: expAmt,
-      expPaidBy: expPaidBy,
-      usrSplitBtw: usrSplitBtw,
-      expGrp: { id: expGrp }
-    }
-
-    let result = await fetch('https://splitwise-apiv1.herokuapp.com/expense/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(item)
-    })
-    result = await result.json()
-    if (result != null || !result.error) {
-      setOpen(false)
-    } else {
-      return
-    }
-    window.location.reload()
   }
 
   return (
