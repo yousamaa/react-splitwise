@@ -82,7 +82,7 @@ export default function Login() {
             sx={{ mt: 3, mb: 2 }}
             disabled={loading}
           >
-            Sign In
+            Log In
           </Button>
           <Grid container>
             <Grid item xs>

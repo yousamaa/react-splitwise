@@ -41,14 +41,7 @@ const createRoutes = () => (
         </PrivateRoute>
       }
     />
-    <Route
-      path={routesPath.signUp}
-      element={
-        <LoginWrapper>
-          <Signup />
-        </LoginWrapper>
-      }
-    />
+    <Route path={routesPath.signUp} element={<Signup />} />
     <Route path={routesPath.login} element={<Login />} />
     <Route
       path={routesPath.forgotPassword}
