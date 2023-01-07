@@ -43,14 +43,7 @@ const createRoutes = () => (
     />
     <Route path={routesPath.signUp} element={<Signup />} />
     <Route path={routesPath.login} element={<Login />} />
-    <Route
-      path={routesPath.forgotPassword}
-      element={
-        <LoginWrapper>
-          <ForgotPassword />
-        </LoginWrapper>
-      }
-    />
+    <Route path={routesPath.forgotPassword} element={<ForgotPassword />} />
   </Routes>
 )
 
