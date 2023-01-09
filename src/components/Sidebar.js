@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import LogoutIcon from '@mui/icons-material/Logout'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
 import { useNavigate } from 'react-router-dom'
 
 import UserItem from './sidebar/UserItem'
@@ -14,7 +14,7 @@ import { database } from '../firebase'
 
 const Sidebar = () => {
   const [groups, setGroups] = useState([])
-  const groupsCollectionRef = collection(database, 'groups')
+  const [user, setUser] = useState({})
   const { currentUser, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -24,7 +24,14 @@ const Sidebar = () => {
   }
 
   useEffect(() => {
+    const getUser = async () => {
+      const userDocRef = doc(database, 'users', String(currentUser.uid))
+      const docSnap = await getDoc(userDocRef)
+      setUser({ ...docSnap.data() })
+    }
+    getUser()
     const getGroups = async () => {
+      const groupsCollectionRef = collection(database, 'users', String(currentUser.uid), 'groups')
       const data = await getDocs(groupsCollectionRef)
       setGroups(
         data.docs.map(doc => ({
@@ -94,7 +101,7 @@ const Sidebar = () => {
       <MainLogo />
       <Sidebaritem>
         <UserItem
-          email={currentUser.email}
+          email={user.name}
           icon={<PersonOutlineIcon style={{ color: 'white', fontSize: '30px' }} />}
         ></UserItem>
         <Sidebaritems>

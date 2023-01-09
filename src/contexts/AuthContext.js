@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
   const signup = (name, email, password) => {
     createUserWithEmailAndPassword(auth, email, password).then(result => {
       const user = result.user
-      setDoc(doc(database, 'users', user.uid), { name: name, email: email })
+      setDoc(doc(database, 'users', String(user.uid)), { name: name, email: email })
     })
   }
 
