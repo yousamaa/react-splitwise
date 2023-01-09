@@ -8,8 +8,9 @@ import {
   updateEmail as newEmail,
   updatePassword as newPassword
 } from 'firebase/auth'
+import { doc, setDoc } from 'firebase/firestore'
 
-import { auth } from '../firebase'
+import { auth, database } from '../firebase'
 
 const AuthContext = React.createContext()
 
@@ -22,7 +23,12 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState({})
   const [loading, setLoading] = useState(true)
 
-  const signup = (email, password) => createUserWithEmailAndPassword(auth, email, password)
+  const signup = (name, email, password) => {
+    createUserWithEmailAndPassword(auth, email, password).then(result => {
+      const user = result.user
+      setDoc(doc(database, 'users', user.uid), { name: name, email: email })
+    })
+  }
 
   const login = (email, password) => signInWithEmailAndPassword(auth, email, password)
 
