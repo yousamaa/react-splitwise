@@ -27,21 +27,17 @@ import './index.css'
 export default function Organizations({ name, id, members }) {
   const { currentUser } = useAuth()
   const [expenses, setExpenses] = useState([])
-  //const history = useNavigate()
   const [open, setOpen] = useState(false)
   const [split, setSplit] = useState(false)
   const [totalExpense, setTotalExpense] = useState(0)
   const [finalSplit, setFinalSplit] = useState([])
   const [users, setUsers] = useState([])
-  //const curruser = JSON.parse(localStorage.getItem('user-info'))
 
   const [expName, setExpName] = useState()
   const [expAmt, setExpAmt] = useState()
   const [expPaidBy, setExpPaidBy] = useState()
   const [expGrp, setExpGrp] = useState()
   const [personName, setPersonName] = useState([])
-  const [selectUsers, setSelectUsers] = useState([])
-  selectUsers
   var usrSplitBtw = []
 
   const getExpenses = async () => {
@@ -64,7 +60,6 @@ export default function Organizations({ name, id, members }) {
       setTotalExpense(totalExpense + expenses[i].expAmt)
     }
     setUsers(members)
-    setSelectUsers(members)
   }
 
   useEffect(() => {

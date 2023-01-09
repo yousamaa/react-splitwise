@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }) => {
     }
     getUser()
     const getGroups = async () => {
-      const groupsCollectionRef = collection(database, 'users', String(currentUser.uid), 'groups')
+      const groupsCollectionRef = collection(database, 'groups')
       const data = await getDocs(groupsCollectionRef)
       setGroups(
         data.docs.map(doc => ({
@@ -67,7 +67,18 @@ export const AuthProvider = ({ children }) => {
         }))
       )
     }
+    const filterGroups = () => {
+      let filteredGroups = []
+      groups.map(group => {
+        group.members.map((member, index) => {
+          member[index].uid == user.id
+          filteredGroups.push(group)
+        })
+      })
+      setGroups(filteredGroups)
+    }
     getGroups()
+    filterGroups()
   }, [currentUser])
 
   const value = {
