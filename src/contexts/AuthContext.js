@@ -50,33 +50,35 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe
   }, [])
 
-  useEffect(() => {
-    const getUser = async () => {
-      const userDocRef = doc(database, 'users', String(currentUser.uid))
-      const docSnap = await getDoc(userDocRef)
-      setUser({ ...docSnap.data() })
-    }
-    getUser()
-    const getGroups = async () => {
-      const groupsCollectionRef = collection(database, 'groups')
-      const data = await getDocs(groupsCollectionRef)
-      setGroups(
-        data.docs.map(doc => ({
-          ...doc.data(),
-          id: doc.id
-        }))
-      )
-    }
-    const filterGroups = () => {
-      let filteredGroups = []
-      groups.map(group => {
-        group.members.map((member, index) => {
-          member[index].uid == user.id
-          filteredGroups.push(group)
-        })
+  const getUser = async () => {
+    const userDocRef = doc(database, 'users', String(currentUser.uid))
+    const docSnap = await getDoc(userDocRef)
+    setUser({ ...docSnap.data() })
+  }
+
+  const getGroups = async () => {
+    const groupsCollectionRef = collection(database, 'groups')
+    const data = await getDocs(groupsCollectionRef)
+    setGroups(
+      data.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id
+      }))
+    )
+  }
+  const filterGroups = () => {
+    let filteredGroups = []
+    groups.map(group => {
+      group.members.map((member, index) => {
+        member[index].uid == user.id
+        filteredGroups.push(group)
       })
-      setGroups(filteredGroups)
-    }
+    })
+    setGroups(filteredGroups)
+  }
+
+  useEffect(() => {
+    getUser()
     getGroups()
     filterGroups()
   }, [currentUser])
