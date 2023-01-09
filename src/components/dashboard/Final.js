@@ -13,7 +13,7 @@ export default function Final({ payto, payby, amt }) {
         <p>{to}</p>
       </div>
       <div className='r-final'>
-        <p style={{ fontSize: '1vw', margin: 0, padding: '10px' }}>₹{amt}</p>
+        <p style={{ fontSize: '1vw', margin: 0, padding: '10px' }}>${amt}</p>
       </div>
     </div>
   )
