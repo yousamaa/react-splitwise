@@ -1,15 +1,18 @@
 import React from 'react'
 
-//import Organization from './Organizations'
+import Organization from './Organizations'
 
 import './index.css'
+import { useAuth } from '../../contexts/AuthContext'
 
 export default function TopContainer() {
+  const { groups } = useAuth()
+
   return (
     <div className='organizations'>
-      {/* {group?.map(post => {
-        return <Organization name={post.groupName} id={post.id} key={post.id} />
-      })} */}
+      {groups?.map(group => {
+        return <Organization name={group.name} id={group.id} key={group.id} />
+      })}
     </div>
   )
 }

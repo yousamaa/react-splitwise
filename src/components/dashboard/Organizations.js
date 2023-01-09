@@ -1,7 +1,9 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable max-lines */
 /* eslint-disable react/jsx-no-useless-fragment */
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import Events from './Events'
+import './index.css'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import AddIcon from '@mui/icons-material/Add'
 import Box from '@mui/material/Box'
@@ -11,15 +13,98 @@ import OutlinedInput from '@mui/material/OutlinedInput'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
 import BalanceIcon from '@mui/icons-material/Balance'
+import Final from './Final'
+//import { useNavigate } from 'react-router-dom'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 
-import Events from './Events'
-import Final from './Final'
-
-import './index.css'
-
 export default function Organizations({ name, id }) {
+  const [expenses, setExpenses] = useState()
+  //const history = useNavigate()
+  const [open, setOpen] = useState(false)
+  const [split, setSplit] = useState(false)
+  const [totalExpense, setTotalExpense] = useState(0)
+  const [finalSplit, setFinalSplit] = useState([])
+  const [users, setUsers] = useState()
+  //const curruser = JSON.parse(localStorage.getItem('user-info'))
+
+  const [expName, setExpName] = useState()
+  const [expAmt, setExpAmt] = useState()
+  const [expPaidBy, setExpPaidBy] = useState()
+  const [expGrp, setExpGrp] = useState()
+  const [personName, setPersonName] = useState([])
+  const [selectUsers, setSelectUsers] = useState([])
+  selectUsers
+  var usrSplitBtw = []
+
+  useEffect(() => {
+    async function fetchData() {
+      let expenses = await fetch(`https://splitwise-apiv1.herokuapp.com/groups/expenses/${id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        }
+      })
+      expenses = await expenses.json()
+      setExpenses(expenses)
+      for (var i = 0; i < expenses.length; i++) {
+        setTotalExpense(totalExpense + expenses[i].expAmt)
+      }
+      if (users == null) {
+        let paidby = await fetch(`https://splitwise-apiv1.herokuapp.com/groups/users/${id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          }
+        })
+        paidby = await paidby.json()
+        setUsers(paidby)
+        setSelectUsers(paidby)
+      }
+    }
+    fetchData()
+  }, [])
+
+  const handleChange = event => {
+    setPersonName(
+      typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value
+    )
+  }
+
+  const openBox = grpId => {
+    setSplit(false)
+    setExpGrp(grpId)
+    setOpen(true)
+  }
+
+  async function gameOn() {
+    if (split) {
+      setSplit(false)
+    } else {
+      try {
+        let paidby = await fetch(`https://splitwise-apiv1.herokuapp.com/FinalSplit/${id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          }
+        })
+        paidby = await paidby.json()
+        if (paidby != null) {
+          setFinalSplit(paidby)
+          //console.log(paidby)
+          setSplit(true)
+        } else {
+          return
+        }
+      } catch (e) {
+        //console.log(e)
+      }
+    }
+  }
+
   const style = {
     position: 'absolute',
     top: '50%',
@@ -29,6 +114,41 @@ export default function Organizations({ name, id }) {
     bgcolor: 'white',
     boxShadow: 24,
     p: 4
+  }
+  async function createExpense() {
+    setOpen(false)
+    //credentials
+    for (var i = 0; i < personName.length; i++) {
+      usrSplitBtw.push({ id: personName[i] })
+    }
+
+    let item = {
+      expName: expName,
+      expAmt: expAmt,
+      expPaidBy: expPaidBy,
+      usrSplitBtw: usrSplitBtw,
+      expGrp: { id: expGrp }
+    }
+    //console.log(item)
+
+    try {
+      let result = await fetch('https://splitwise-apiv1.herokuapp.com/expense/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(item)
+      })
+      result = await result.json()
+      if (result != null || !result.error) {
+        setOpen(false)
+      } else {
+        return
+      }
+    } catch (e) {
+      //console.log(e)
+    }
+    window.location.reload()
   }
 
   return (
@@ -68,12 +188,9 @@ export default function Organizations({ name, id }) {
 
             {finalSplit?.map(post => {
               return (
-                <Final
-                  payto={post.finalPayTo}
-                  payby={post.finalPayBy}
-                  amt={post.finalAmt}
-                  key={post.id}
-                />
+                <>
+                  <Final payto={post.finalPayTo} payby={post.finalPayBy} amt={post.finalAmt} />
+                </>
               )
             })}
             <Modal
@@ -87,7 +204,12 @@ export default function Organizations({ name, id }) {
               <Box sx={style}>
                 <p>Add Expense</p>
                 <div
-                  style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '10px' }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    gap: '10px'
+                  }}
                 >
                   <TextField
                     label='Name'
@@ -174,7 +296,7 @@ export default function Organizations({ name, id }) {
                 <AddIcon style={{ fontSize: '20px' }} />
               </div>
               <div>
-                <p>₹{totalExpense}</p>
+                <p>${totalExpense}</p>
               </div>
               <div
                 onClick={() => {
@@ -188,7 +310,14 @@ export default function Organizations({ name, id }) {
           </div>
           {expenses?.map(post => {
             return (
-              <Events name={post.expName} key={post.id} paidBy={post.expPaidBy} amt={post.expAmt} />
+              <>
+                <Events
+                  name={post.expName}
+                  key={post.id}
+                  paidBy={post.expPaidBy}
+                  amt={post.expAmt}
+                />
+              </>
             )
           })}
           <Modal
@@ -201,7 +330,14 @@ export default function Organizations({ name, id }) {
           >
             <Box sx={style}>
               <p>Add Expense</p>
-              <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '10px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  gap: '10px'
+                }}
+              >
                 <TextField
                   label='Name'
                   onChange={e => {
