@@ -11,7 +11,9 @@ export default function TopContainer() {
   return (
     <div className='organizations'>
       {groups?.map(group => {
-        return <Organization name={group.name} id={group.id} key={group.id} />
+        return (
+          <Organization name={group.name} id={group.id} members={group.members} key={group.id} />
+        )
       })}
     </div>
   )

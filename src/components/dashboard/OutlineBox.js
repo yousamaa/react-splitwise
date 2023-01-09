@@ -6,7 +6,7 @@ import './index.css'
 export default function OutlineBox({ id }) {
   return (
     <div className='outlinebox'>
-      <p className='box-text'>{paidBy?.userFirstName}</p>
+      <p className='box-text'>{id}</p>
     </div>
   )
 }

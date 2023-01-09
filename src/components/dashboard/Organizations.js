@@ -2,30 +2,37 @@
 /* eslint-disable max-lines */
 /* eslint-disable react/jsx-no-useless-fragment */
 import React, { useEffect, useState } from 'react'
-import Events from './Events'
-import './index.css'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
-import AddIcon from '@mui/icons-material/Add'
-import Box from '@mui/material/Box'
-import Modal from '@mui/material/Modal'
-import TextField from '@mui/material/TextField'
-import OutlinedInput from '@mui/material/OutlinedInput'
-import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
 import BalanceIcon from '@mui/icons-material/Balance'
-import Final from './Final'
-//import { useNavigate } from 'react-router-dom'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
+import AddIcon from '@mui/icons-material/Add'
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Modal,
+  OutlinedInput,
+  Select,
+  TextField
+} from '@mui/material'
 
-export default function Organizations({ name, id }) {
-  const [expenses, setExpenses] = useState()
+import { database } from '../../firebase'
+import { collection, getDocs } from 'firebase/firestore'
+import { useAuth } from '../../contexts/AuthContext'
+import Final from './Final'
+import Events from './Events'
+
+import './index.css'
+
+export default function Organizations({ name, id, members }) {
+  const { currentUser } = useAuth()
+  const [expenses, setExpenses] = useState([])
   //const history = useNavigate()
   const [open, setOpen] = useState(false)
   const [split, setSplit] = useState(false)
   const [totalExpense, setTotalExpense] = useState(0)
   const [finalSplit, setFinalSplit] = useState([])
-  const [users, setUsers] = useState()
+  const [users, setUsers] = useState([])
   //const curruser = JSON.parse(localStorage.getItem('user-info'))
 
   const [expName, setExpName] = useState()
@@ -37,34 +44,31 @@ export default function Organizations({ name, id }) {
   selectUsers
   var usrSplitBtw = []
 
-  useEffect(() => {
-    async function fetchData() {
-      let expenses = await fetch(`https://splitwise-apiv1.herokuapp.com/groups/expenses/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        }
-      })
-      expenses = await expenses.json()
-      setExpenses(expenses)
-      for (var i = 0; i < expenses.length; i++) {
-        setTotalExpense(totalExpense + expenses[i].expAmt)
-      }
-      if (users == null) {
-        let paidby = await fetch(`https://splitwise-apiv1.herokuapp.com/groups/users/${id}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-          }
-        })
-        paidby = await paidby.json()
-        setUsers(paidby)
-        setSelectUsers(paidby)
-      }
+  const getExpenses = async () => {
+    const expensesCollectionRef = collection(
+      database,
+      'users',
+      String(currentUser.uid),
+      'groups',
+      id,
+      'expenses'
+    )
+    const data = await getDocs(expensesCollectionRef)
+    setExpenses(
+      data.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id
+      }))
+    )
+    for (var i = 0; i < expenses.length; i++) {
+      setTotalExpense(totalExpense + expenses[i].expAmt)
     }
-    fetchData()
+    setUsers(members)
+    setSelectUsers(members)
+  }
+
+  useEffect(() => {
+    getExpenses()
   }, [])
 
   const handleChange = event => {
@@ -148,7 +152,7 @@ export default function Organizations({ name, id }) {
     } catch (e) {
       //console.log(e)
     }
-    window.location.reload()
+    //window.location.reload()
   }
 
   return (
