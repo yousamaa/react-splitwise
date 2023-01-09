@@ -1,47 +1,23 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import styled from 'styled-components'
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import LogoutIcon from '@mui/icons-material/Logout'
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
 import { useNavigate } from 'react-router-dom'
 
 import UserItem from './sidebar/UserItem'
 import { useAuth } from '../contexts/AuthContext'
 import SidebarItem from './sidebar/SidebarItem'
 import MainLogo from './sidebar/MainLogo'
-import { database } from '../firebase'
 
 const Sidebar = () => {
-  const [groups, setGroups] = useState([])
-  const [user, setUser] = useState({})
-  const { currentUser, logout } = useAuth()
+  const { user, groups, logout } = useAuth()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
     await logout()
     navigate('/login')
   }
-
-  useEffect(() => {
-    const getUser = async () => {
-      const userDocRef = doc(database, 'users', String(currentUser.uid))
-      const docSnap = await getDoc(userDocRef)
-      setUser({ ...docSnap.data() })
-    }
-    getUser()
-    const getGroups = async () => {
-      const groupsCollectionRef = collection(database, 'users', String(currentUser.uid), 'groups')
-      const data = await getDocs(groupsCollectionRef)
-      setGroups(
-        data.docs.map(doc => ({
-          ...doc.data(),
-          id: doc.id
-        }))
-      )
-    }
-    getGroups()
-  }, [])
 
   const SidebarMain = styled.div`
     display: flex;

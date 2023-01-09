@@ -8,7 +8,7 @@ import {
   updateEmail as newEmail,
   updatePassword as newPassword
 } from 'firebase/auth'
-import { doc, setDoc } from 'firebase/firestore'
+import { doc, setDoc, collection, getDoc, getDocs } from 'firebase/firestore'
 
 import { auth, database } from '../firebase'
 
@@ -22,6 +22,8 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState({})
   const [loading, setLoading] = useState(true)
+  const [groups, setGroups] = useState([])
+  const [user, setUser] = useState({})
 
   const signup = (name, email, password) => {
     createUserWithEmailAndPassword(auth, email, password).then(result => {
@@ -48,6 +50,26 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe
   }, [])
 
+  useEffect(() => {
+    const getUser = async () => {
+      const userDocRef = doc(database, 'users', String(currentUser.uid))
+      const docSnap = await getDoc(userDocRef)
+      setUser({ ...docSnap.data() })
+    }
+    getUser()
+    const getGroups = async () => {
+      const groupsCollectionRef = collection(database, 'users', String(currentUser.uid), 'groups')
+      const data = await getDocs(groupsCollectionRef)
+      setGroups(
+        data.docs.map(doc => ({
+          ...doc.data(),
+          id: doc.id
+        }))
+      )
+    }
+    getGroups()
+  }, [currentUser])
+
   const value = {
     currentUser,
     login,
@@ -55,7 +77,9 @@ export const AuthProvider = ({ children }) => {
     logout,
     resetPassword,
     updateEmail,
-    updatePassword
+    updatePassword,
+    user,
+    groups
   }
 
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>
