@@ -33,7 +33,7 @@ const Signup = () => {
     try {
       setError('')
       setLoading(true)
-      await signup(data.get('email'), data.get('password'))
+      await signup(data.get('name'), data.get('email'), data.get('password'))
       navigate('/')
     } catch {
       setError('Failed to create an account')
@@ -66,11 +66,20 @@ const Signup = () => {
             margin='normal'
             required
             fullWidth
+            id='name'
+            label='Name'
+            name='name'
+            autoComplete='name'
+            autoFocus
+          />
+          <TextField
+            margin='normal'
+            required
+            fullWidth
             id='email'
             label='Email Address'
             name='email'
             autoComplete='email'
-            autoFocus
           />
           <TextField
             margin='normal'

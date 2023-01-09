@@ -8,8 +8,9 @@ import {
   updateEmail as newEmail,
   updatePassword as newPassword
 } from 'firebase/auth'
+import { doc, setDoc, collection, getDoc, getDocs } from 'firebase/firestore'
 
-import { auth } from '../firebase'
+import { auth, database } from '../firebase'
 
 const AuthContext = React.createContext()
 
@@ -21,8 +22,15 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState({})
   const [loading, setLoading] = useState(true)
+  const [groups, setGroups] = useState([])
+  const [user, setUser] = useState({})
 
-  const signup = (email, password) => createUserWithEmailAndPassword(auth, email, password)
+  const signup = (name, email, password) => {
+    createUserWithEmailAndPassword(auth, email, password).then(result => {
+      const user = result.user
+      setDoc(doc(database, 'users', String(user.uid)), { name: name, email: email })
+    })
+  }
 
   const login = (email, password) => signInWithEmailAndPassword(auth, email, password)
 
@@ -42,6 +50,26 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe
   }, [])
 
+  useEffect(() => {
+    const getUser = async () => {
+      const userDocRef = doc(database, 'users', String(currentUser.uid))
+      const docSnap = await getDoc(userDocRef)
+      setUser({ ...docSnap.data() })
+    }
+    getUser()
+    const getGroups = async () => {
+      const groupsCollectionRef = collection(database, 'users', String(currentUser.uid), 'groups')
+      const data = await getDocs(groupsCollectionRef)
+      setGroups(
+        data.docs.map(doc => ({
+          ...doc.data(),
+          id: doc.id
+        }))
+      )
+    }
+    getGroups()
+  }, [currentUser])
+
   const value = {
     currentUser,
     login,
@@ -49,7 +77,9 @@ export const AuthProvider = ({ children }) => {
     logout,
     resetPassword,
     updateEmail,
-    updatePassword
+    updatePassword,
+    user,
+    groups
   }
 
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>

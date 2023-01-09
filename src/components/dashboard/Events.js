@@ -13,7 +13,7 @@ export default function Events({ name, paidBy, amt }) {
       <div className='event-content'>
         <p className='event-head'>{name}</p>
         <div className='event-icons'>
-          <FilledBox text={`₹${amt}`} />
+          <FilledBox text={`$${amt}`} />
           <OutlineBox id={paidBy} />
         </div>
       </div>
