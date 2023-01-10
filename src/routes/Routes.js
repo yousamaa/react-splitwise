@@ -1,5 +1,4 @@
 import { Routes, Route } from 'react-router-dom'
-import styled from 'styled-components'
 import Signup from '../pages/Signup'
 import Dashboard from '../pages/Dashboard'
 import Login from '../pages/Login'
@@ -7,18 +6,6 @@ import PrivateRoute from '../components/PrivateRoute'
 import ForgotPassword from '../components/authentication/ForgotPassword'
 import UpdateProfile from '../components/authentication/UpdateProfile'
 import routesPath from './RoutesPath'
-
-const LoginWrapper = styled.section`
-  width: 22.5%;
-  height: 50%;
-  overflow: auto;
-  margin: auto;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-`
 
 const createRoutes = () => (
   <Routes>
@@ -35,9 +22,7 @@ const createRoutes = () => (
       path={routesPath.updateProfile}
       element={
         <PrivateRoute>
-          <LoginWrapper>
-            <UpdateProfile />
-          </LoginWrapper>
+          <UpdateProfile />
         </PrivateRoute>
       }
     />

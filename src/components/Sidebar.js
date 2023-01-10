@@ -9,6 +9,7 @@ import UserItem from './sidebar/UserItem'
 import { useAuth } from '../contexts/AuthContext'
 import SidebarItem from './sidebar/SidebarItem'
 import MainLogo from './sidebar/MainLogo'
+import routesPath from '../routes/RoutesPath'
 
 const Sidebar = () => {
   const { user, groups, logout } = useAuth()
@@ -16,7 +17,7 @@ const Sidebar = () => {
 
   const handleLogout = async () => {
     await logout()
-    navigate('/login')
+    navigate(routesPath.login)
   }
 
   const SidebarMain = styled.div`

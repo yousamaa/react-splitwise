@@ -1,5 +1,9 @@
 import React from 'react'
 import styled from 'styled-components'
+import EditIcon from '@mui/icons-material/Edit'
+
+import routesPath from '../../routes/RoutesPath'
+import { Link } from 'react-router-dom'
 
 // eslint-disable-next-line react/prop-types
 const UserItem = ({ name, icon }) => {
@@ -22,9 +26,10 @@ const UserItem = ({ name, icon }) => {
   return (
     <UserItemMain>
       {icon}
-      <div>
-        <Paragragh>{name}</Paragragh>
-      </div>
+      <Paragragh>{name}</Paragragh>
+      <Link to={routesPath.updateProfile}>
+        <EditIcon style={{ color: 'white' }} />
+      </Link>
     </UserItemMain>
   )
 }
