@@ -2,7 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 
 // eslint-disable-next-line react/prop-types
-const UserItem = ({ email, icon }) => {
+const UserItem = ({ name, icon }) => {
   const UserItemMain = styled.div`
     display: flex;
     flex-direction: row;
@@ -23,7 +23,7 @@ const UserItem = ({ email, icon }) => {
     <UserItemMain>
       {icon}
       <div>
-        <Paragragh>{email}</Paragragh>
+        <Paragragh>{name}</Paragragh>
       </div>
     </UserItemMain>
   )

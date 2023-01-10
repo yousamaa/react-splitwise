@@ -77,7 +77,7 @@ const Sidebar = () => {
       <MainLogo />
       <Sidebaritem>
         <UserItem
-          email={user.name}
+          name={user.name}
           icon={<PersonOutlineIcon style={{ color: 'white', fontSize: '30px' }} />}
         ></UserItem>
         <Sidebaritems>
