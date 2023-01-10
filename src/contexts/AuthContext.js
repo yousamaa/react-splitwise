@@ -42,14 +42,6 @@ export const AuthProvider = ({ children }) => {
 
   const updatePassword = password => newPassword(currentUser, password)
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, user => {
-      setCurrentUser(user)
-      setLoading(false)
-    })
-    return unsubscribe
-  }, [])
-
   const getUser = async () => {
     const userDocRef = doc(database, 'users', String(currentUser.uid))
     const docSnap = await getDoc(userDocRef)
@@ -59,28 +51,32 @@ export const AuthProvider = ({ children }) => {
   const getGroups = async () => {
     const groupsCollectionRef = collection(database, 'groups')
     const data = await getDocs(groupsCollectionRef)
-    setGroups(
-      data.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id
-      }))
-    )
-  }
-  const filterGroups = () => {
-    let filteredGroups = []
-    groups.map(group => {
-      group.members.map((member, index) => {
-        member[index].uid == user.id
-        filteredGroups.push(group)
-      })
-    })
+
+    const filteredGroups = data.docs
+      .map(doc => ({ ...doc.data(), id: doc.id }))
+      .filter(
+        group =>
+          group.members &&
+          Array.isArray(group.members) &&
+          group.members.some(member => member.uid && member.uid == currentUser.uid)
+      )
     setGroups(filteredGroups)
   }
 
   useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, user => {
+      setCurrentUser(user)
+      setLoading(false)
+    })
+    return unsubscribe
+  }, [])
+
+  useEffect(() => {
     getUser()
+  }, [currentUser])
+
+  useEffect(() => {
     getGroups()
-    filterGroups()
   }, [currentUser])
 
   const value = {
