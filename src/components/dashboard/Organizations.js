@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 /* eslint-disable max-lines */
 /* eslint-disable react/jsx-no-useless-fragment */
@@ -18,18 +19,15 @@ import {
 
 import { database } from '../../firebase'
 import { collection, getDocs } from 'firebase/firestore'
-import { useAuth } from '../../contexts/AuthContext'
 import Final from './Final'
 import Events from './Events'
 
 import './index.css'
 
-export default function Organizations({ name, id, members }) {
-  const { currentUser } = useAuth()
+export default function Organizations({ name, id, members, expenseIds, totalExpense }) {
   const [expenses, setExpenses] = useState([])
   const [open, setOpen] = useState(false)
   const [split, setSplit] = useState(false)
-  const [totalExpense, setTotalExpense] = useState(0)
   const [finalSplit, setFinalSplit] = useState([])
   const [users, setUsers] = useState([])
 
@@ -41,29 +39,30 @@ export default function Organizations({ name, id, members }) {
   var usrSplitBtw = []
 
   const getExpenses = async () => {
-    const expensesCollectionRef = collection(
-      database,
-      'users',
-      String(currentUser.uid),
-      'groups',
-      id,
-      'expenses'
-    )
+    const expensesCollectionRef = collection(database, 'expenses')
     const data = await getDocs(expensesCollectionRef)
-    setExpenses(
-      data.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id
-      }))
-    )
-    for (var i = 0; i < expenses.length; i++) {
-      setTotalExpense(totalExpense + expenses[i].expAmt)
-    }
-    setUsers(members)
+    const filteredExpenses = data.docs
+      .map(doc => ({ ...doc.data(), id: doc.id }))
+      .filter(expense => expense.id.includes(expenseIds))
+    setExpenses(filteredExpenses)
+  }
+
+  const getMembers = async () => {
+    const usersCollectionRef = collection(database, 'users')
+    const data = await getDocs(usersCollectionRef)
+
+    const filteredMembers = data.docs
+      .map(doc => ({ ...doc.data(), id: doc.id }))
+      .filter(user => members.some(member => member.uid == user.id))
+    setUsers(filteredMembers)
   }
 
   useEffect(() => {
     getExpenses()
+  }, [])
+
+  useEffect(() => {
+    getMembers()
   }, [])
 
   const handleChange = event => {
@@ -116,7 +115,6 @@ export default function Organizations({ name, id, members }) {
   }
   async function createExpense() {
     setOpen(false)
-    //credentials
     for (var i = 0; i < personName.length; i++) {
       usrSplitBtw.push({ id: personName[i] })
     }
@@ -128,7 +126,6 @@ export default function Organizations({ name, id, members }) {
       usrSplitBtw: usrSplitBtw,
       expGrp: { id: expGrp }
     }
-    //console.log(item)
 
     try {
       let result = await fetch('https://splitwise-apiv1.herokuapp.com/expense/create', {
@@ -145,9 +142,8 @@ export default function Organizations({ name, id, members }) {
         return
       }
     } catch (e) {
-      //console.log(e)
+      e
     }
-    //window.location.reload()
   }
 
   return (
@@ -232,9 +228,9 @@ export default function Organizations({ name, id, members }) {
                     input={<OutlinedInput placeholder='Members' />}
                     style={{ width: '100%' }}
                   >
-                    {users?.map(name => (
-                      <MenuItem key={name.id} value={name.id}>
-                        {name.userFirstName}
+                    {users?.map(user => (
+                      <MenuItem key={user.id} value={user.id}>
+                        {user.name}
                       </MenuItem>
                     ))}
                   </Select>
@@ -247,9 +243,9 @@ export default function Organizations({ name, id, members }) {
                     input={<OutlinedInput placeholder='Members' />}
                     style={{ width: '100%' }}
                   >
-                    {users?.map(name => (
-                      <MenuItem key={name.id} value={name.id}>
-                        {name.userFirstName}
+                    {users?.map(user => (
+                      <MenuItem key={user.id} value={user.id}>
+                        {user.name}
                       </MenuItem>
                     ))}
                   </Select>
@@ -307,14 +303,14 @@ export default function Organizations({ name, id, members }) {
               </div>
             </div>
           </div>
-          {expenses?.map(post => {
+          {expenses?.map(expense => {
             return (
               <>
                 <Events
-                  name={post.expName}
-                  key={post.id}
-                  paidBy={post.expPaidBy}
-                  amt={post.expAmt}
+                  name={expense.expName}
+                  amt={expense.expAmt}
+                  paidBy={expense.expPaidBy}
+                  key={expense.id}
                 />
               </>
             )
@@ -361,9 +357,9 @@ export default function Organizations({ name, id, members }) {
                     input={<OutlinedInput />}
                     style={{ width: '100%' }}
                   >
-                    {users?.map(name => (
-                      <MenuItem key={name.id} value={name.id}>
-                        {name.userFirstName}
+                    {users?.map(user => (
+                      <MenuItem key={user.id} value={user.id}>
+                        {user.name}
                       </MenuItem>
                     ))}
                   </Select>
@@ -379,10 +375,10 @@ export default function Organizations({ name, id, members }) {
                     input={<OutlinedInput />}
                     style={{ width: '100%' }}
                   >
-                    {users?.map(name =>
-                      name.id != expPaidBy ? (
-                        <MenuItem key={name.id} value={name.id}>
-                          {name.userFirstName}
+                    {users?.map(user =>
+                      user.id != expPaidBy ? (
+                        <MenuItem key={user.id} value={user.id}>
+                          {user.name}
                         </MenuItem>
                       ) : (
                         <></>
