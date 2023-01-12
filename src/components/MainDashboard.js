@@ -13,11 +13,30 @@ import { collection, getDocs } from 'firebase/firestore'
 
 import { database } from '../firebase'
 import TopContainer from '../components/dashboard/TopContainer'
-import './index.css'
 import { useAuth } from '../contexts/AuthContext'
+
+import './index.css'
 
 export default function MainDashboard() {
   const [users, setUsers] = useState()
+  const [personName, setPersonName] = useState([])
+  const { user: currUser } = useAuth()
+  const [open, setOpen] = useState(false)
+  const [grpName, setGrpName] = useState('')
+  const [grpType, setGrpType] = useState()
+  const [grpBudget, setGrpBudget] = useState()
+  const grpUser = []
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'white',
+    boxShadow: 24,
+    p: 4
+  }
+
   useEffect(() => {
     const getUsers = async () => {
       const usersCollectionRef = collection(database, 'users')
@@ -29,31 +48,14 @@ export default function MainDashboard() {
     getUsers()
   }, [])
 
-  const [personName, setPersonName] = useState([])
-  const { user: currUser } = useAuth()
   const handleChange = event => {
     setPersonName(
       // On autofill we get a stringified value.
       typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value
     )
   }
-  const [open, setOpen] = useState(false)
-  const [grpName, setGrpName] = useState('')
-  const [grpType, setGrpType] = useState()
-  const [grpBudget, setGrpBudget] = useState()
-  const grpUser = []
 
-  const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'white',
-    boxShadow: 24,
-    p: 4
-  }
-  async function creategroup() {
+  const creategroup = async () => {
     setOpen(false)
     //credentials
     for (var i = 0; i < personName.length; i++) {
@@ -101,6 +103,7 @@ export default function MainDashboard() {
 
     // window.location.reload()
   }
+
   return (
     <div className='maindashboard-main'>
       <div className='top-container'>
