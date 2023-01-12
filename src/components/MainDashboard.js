@@ -1,113 +1,193 @@
-import React from 'react'
-import styled from 'styled-components'
-import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import Modal from '@mui/material/Modal'
-import Box from '@mui/material/Box'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import OutlinedInput from '@mui/material/OutlinedInput'
-//import MenuItem from '@mui/material/MenuItem'
+import React, { useState, useEffect } from 'react'
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Modal,
+  OutlinedInput,
+  Select,
+  TextField
+} from '@mui/material'
+import { collection, getDocs } from 'firebase/firestore'
 
-import TopContainer from './dashboard/TopContainer'
+import { database } from '../firebase'
+import TopContainer from '../components/dashboard/TopContainer'
+import './index.css'
+import { useAuth } from '../contexts/AuthContext'
 
-const MainDashboard = () => {
-  const MainDashboardMain = styled.div`
-    background-color: #f7f2f9;
-    min-height: 100vh;
-    max-width: 82%;
+export default function MainDashboard() {
+  const [users, setUsers] = useState()
+  useEffect(() => {
+    const getUsers = async () => {
+      const usersCollectionRef = collection(database, 'users')
+      const data = await getDocs(usersCollectionRef)
 
-    border-radius: 2vw;
-    padding-top: 3vw;
-    padding-left: 5vw;
-    padding-right: 5vw;
-  `
-  const Topcontainer = styled.div`
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: 2vw;
-  `
-  const SearchBar = styled(TextField)`
-    background-color: white;
-    width: 100vw;
-    max-width: 70%;
-  `
+      const filteredUsers = data.docs.map(doc => ({ ...doc.data(), id: doc.id }))
+      setUsers(filteredUsers)
+    }
+    getUsers()
+  }, [])
 
-  const TopObject = styled.div`
-    background-color: #eae4f2;
-    border-radius: 0.5vw;
-    padding-left: 1vw;
-    padding-right: 1vw;
-    cursor: pointer;
-  `
+  const [personName, setPersonName] = useState([])
+  const { user: currUser } = useAuth()
+  const handleChange = event => {
+    setPersonName(
+      // On autofill we get a stringified value.
+      typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value
+    )
+  }
+  const [open, setOpen] = useState(false)
+  const [grpName, setGrpName] = useState('')
+  const [grpType, setGrpType] = useState()
+  const [grpBudget, setGrpBudget] = useState()
+  const grpUser = []
 
-  const BoxStyled = styled(Box)`
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 400;
-    bgcolor: white;
-    boxshadow: 24;
-    p: 4;
-  `
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'white',
+    boxShadow: 24,
+    p: 4
+  }
+  async function creategroup() {
+    setOpen(false)
+    //credentials
+    for (var i = 0; i < personName.length; i++) {
+      grpUser.push({ id: personName[i] })
+    }
+    console.log(grpUser)
+    let item = {
+      grpName: grpName,
+      grpType: grpType,
+      grpBudget: grpBudget,
+      grpUser: grpUser
+    }
+    console.log(item)
 
-  const BoxDiv = styled.div`
-    display: flex;
-    flexDirection: row;
-    flexWrap: wrap;
-    gap: '10px;
-  `
+    try {
+      let result = await fetch('https://splitwise-apiv1.herokuapp.com/groups/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(item)
+      })
+      result = await result.json()
+      if (result != null || !result.error) {
+        localStorage.setItem('groups', JSON.stringify(result))
+        setOpen(false)
+      } else {
+        return
+      }
+    } catch (e) {
+      console.log(e)
+    }
+    let totalgroups = await fetch(
+      `https://splitwise-apiv1.herokuapp.com/user/groups/${currUser.id}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        }
+      }
+    )
+    totalgroups = await totalgroups.json()
+    localStorage.setItem('groups', JSON.stringify(totalgroups))
 
-  const BoxOuterDiv = styled.div`
-    textalign: center;
-    backgroundcolor: #674fa3;
-    borderradius: 0.5vw;
-    padding: 2px;
-    margintop: 10px;
-    cursor: pointer;
-  `
+    // window.location.reload()
+  }
   return (
-    <MainDashboardMain>
-      <Topcontainer>
-        <SearchBar label='Search' />
-        <TopObject>
-          <p>Add Group</p>
-        </TopObject>
-      </Topcontainer>
+    <div className='maindashboard-main'>
+      <div className='top-container'>
+        <TextField label='Search' className='searchbar' />
+        <div
+          className='top-object'
+          onClick={() => {
+            setOpen(true)
+          }}
+        >
+          <p className='top-text'>Add Group</p>
+        </div>
+      </div>
       <TopContainer />
-      <Modal aria-labelledby='modal-modal-title' aria-describedby='modal-modal-description'>
-        <BoxStyled>
+      <Modal
+        open={open}
+        onClose={() => {
+          setOpen(false)
+        }}
+        aria-labelledby='modal-modal-title'
+        aria-describedby='modal-modal-description'
+      >
+        <Box sx={style}>
           <p>Add Group</p>
-          <BoxDiv>
-            <TextField label='Name' />
-            <TextField label='Budget' />
-            <TextField label='Type' style={{ width: '100%' }} />
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: '10px'
+            }}
+          >
+            <TextField
+              label='Name'
+              onChange={e => {
+                setGrpName(e.target.value)
+              }}
+            />
+            <TextField
+              label='Budget'
+              onChange={e => {
+                setGrpBudget(e.target.value)
+              }}
+            />
+            <TextField
+              label='Type'
+              onChange={e => {
+                setGrpType(e.target.value)
+              }}
+              style={{ width: '100%' }}
+            />
             <FormControl style={{ width: '100%' }}>
               <InputLabel>Members</InputLabel>
               <Select
                 labelId='demo-multiple-name-label'
                 id='demo-multiple-name'
                 multiple
+                value={personName}
+                onChange={handleChange}
                 input={<OutlinedInput placeholder='Members' />}
                 style={{ width: '100%' }}
               >
-                {/* {users?.map(name => (
+                {users?.map(name => (
                   <MenuItem key={name.id} value={name.id}>
                     {name.userFirstName}
                   </MenuItem>
-                ))} */}
+                ))}
               </Select>
             </FormControl>
-          </BoxDiv>
-          <BoxOuterDiv>
+          </div>
+          <div
+            style={{
+              textAlign: 'center',
+              backgroundColor: '#674fa3',
+              borderRadius: '0.5vw',
+              padding: '2px',
+              marginTop: '10px',
+              cursor: 'pointer'
+            }}
+            onClick={() => {
+              creategroup()
+            }}
+          >
             <p style={{ color: 'white' }}>Create Group</p>
-          </BoxOuterDiv>
-        </BoxStyled>
+          </div>
+        </Box>
       </Modal>
-    </MainDashboardMain>
+    </div>
   )
 }
-
-export default MainDashboard
