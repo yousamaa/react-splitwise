@@ -9,23 +9,20 @@ import {
   Select,
   TextField
 } from '@mui/material'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, getDocs, addDoc } from 'firebase/firestore'
 
 import { database } from '../firebase'
 import TopContainer from '../components/dashboard/TopContainer'
-import { useAuth } from '../contexts/AuthContext'
 
 import './index.css'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function MainDashboard() {
   const [users, setUsers] = useState()
   const [personName, setPersonName] = useState([])
-  const { user: currUser } = useAuth()
   const [open, setOpen] = useState(false)
   const [grpName, setGrpName] = useState('')
-  const [grpType, setGrpType] = useState()
-  const [grpBudget, setGrpBudget] = useState()
-  const grpUser = []
+  const { user: authenticatedUser } = useAuth()
   const style = {
     position: 'absolute',
     top: '50%',
@@ -41,8 +38,11 @@ export default function MainDashboard() {
     const getUsers = async () => {
       const usersCollectionRef = collection(database, 'users')
       const data = await getDocs(usersCollectionRef)
+      console.log(authenticatedUser)
+      const filteredUsers = data.docs
+        .map(doc => ({ ...doc.data(), id: doc.id }))
+        .filter(user => authenticatedUser.friendIds.includes(user.id))
 
-      const filteredUsers = data.docs.map(doc => ({ ...doc.data(), id: doc.id }))
       setUsers(filteredUsers)
     }
     getUsers()
@@ -50,58 +50,23 @@ export default function MainDashboard() {
 
   const handleChange = event => {
     setPersonName(
-      // On autofill we get a stringified value.
       typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value
     )
   }
 
   const creategroup = async () => {
     setOpen(false)
-    //credentials
-    for (var i = 0; i < personName.length; i++) {
-      grpUser.push({ id: personName[i] })
-    }
-    console.log(grpUser)
+    const grpUser = personName.map(name => ({ uid: name }))
+    grpUser.push({ uid: authenticatedUser.id })
     let item = {
-      grpName: grpName,
-      grpType: grpType,
-      grpBudget: grpBudget,
-      grpUser: grpUser
+      name: grpName,
+      totalExpense: 0,
+      expenseIds: [],
+      members: grpUser
     }
-    console.log(item)
 
-    try {
-      let result = await fetch('https://splitwise-apiv1.herokuapp.com/groups/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(item)
-      })
-      result = await result.json()
-      if (result != null || !result.error) {
-        localStorage.setItem('groups', JSON.stringify(result))
-        setOpen(false)
-      } else {
-        return
-      }
-    } catch (e) {
-      console.log(e)
-    }
-    let totalgroups = await fetch(
-      `https://splitwise-apiv1.herokuapp.com/user/groups/${currUser.id}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        }
-      }
-    )
-    totalgroups = await totalgroups.json()
-    localStorage.setItem('groups', JSON.stringify(totalgroups))
-
-    // window.location.reload()
+    const docRef = await addDoc(collection(database, 'groups'), item)
+    console.log('Document written with ID: ', docRef.id)
   }
 
   return (
@@ -142,19 +107,6 @@ export default function MainDashboard() {
                 setGrpName(e.target.value)
               }}
             />
-            <TextField
-              label='Budget'
-              onChange={e => {
-                setGrpBudget(e.target.value)
-              }}
-            />
-            <TextField
-              label='Type'
-              onChange={e => {
-                setGrpType(e.target.value)
-              }}
-              style={{ width: '100%' }}
-            />
             <FormControl style={{ width: '100%' }}>
               <InputLabel>Members</InputLabel>
               <Select
@@ -166,9 +118,9 @@ export default function MainDashboard() {
                 input={<OutlinedInput placeholder='Members' />}
                 style={{ width: '100%' }}
               >
-                {users?.map(name => (
-                  <MenuItem key={name.id} value={name.id}>
-                    {name.userFirstName}
+                {users?.map(user => (
+                  <MenuItem key={user.id} value={user.id}>
+                    {user.name}
                   </MenuItem>
                 ))}
               </Select>
