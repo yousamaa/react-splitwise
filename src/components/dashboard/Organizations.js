@@ -36,14 +36,13 @@ export default function Organizations({ name, id, members, expenseIds, totalExpe
   const [expPaidBy, setExpPaidBy] = useState()
   const [expGrp, setExpGrp] = useState()
   const [personName, setPersonName] = useState([])
-  var usrSplitBtw = []
 
   const getExpenses = async () => {
     const expensesCollectionRef = collection(database, 'expenses')
     const data = await getDocs(expensesCollectionRef)
     const filteredExpenses = data.docs
       .map(doc => ({ ...doc.data(), id: doc.id }))
-      .filter(expense => expense.id.includes(expenseIds))
+      .filter(expense => expenseIds.includes(expense.id))
     setExpenses(filteredExpenses)
   }
 
@@ -115,9 +114,8 @@ export default function Organizations({ name, id, members, expenseIds, totalExpe
   }
   async function createExpense() {
     setOpen(false)
-    for (var i = 0; i < personName.length; i++) {
-      usrSplitBtw.push({ id: personName[i] })
-    }
+
+    const usrSplitBtw = personName.map(name => ({ id: name }))
 
     let item = {
       expName: expName,
@@ -127,23 +125,8 @@ export default function Organizations({ name, id, members, expenseIds, totalExpe
       expGrp: { id: expGrp }
     }
 
-    try {
-      let result = await fetch('https://splitwise-apiv1.herokuapp.com/expense/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(item)
-      })
-      result = await result.json()
-      if (result != null || !result.error) {
-        setOpen(false)
-      } else {
-        return
-      }
-    } catch (e) {
-      e
-    }
+    const docRef = await addDoc(collection(database, 'expenses'), item)
+    console.log('Document written with ID: ', docRef.id)
   }
 
   return (

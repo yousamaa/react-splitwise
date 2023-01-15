@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import {
   Box,
   FormControl,
@@ -10,12 +10,13 @@ import {
   TextField
 } from '@mui/material'
 import { collection, getDocs, addDoc } from 'firebase/firestore'
+import { useNavigate } from 'react-router-dom'
 
 import { database } from '../firebase'
 import TopContainer from '../components/dashboard/TopContainer'
+import { useAuth } from '../contexts/AuthContext'
 
 import './index.css'
-import { useAuth } from '../contexts/AuthContext'
 
 export default function MainDashboard() {
   const [users, setUsers] = useState()
@@ -23,6 +24,7 @@ export default function MainDashboard() {
   const [open, setOpen] = useState(false)
   const [grpName, setGrpName] = useState('')
   const { user: authenticatedUser } = useAuth()
+  const navigate = useNavigate()
   const style = {
     position: 'absolute',
     top: '50%',
@@ -34,19 +36,30 @@ export default function MainDashboard() {
     p: 4
   }
 
-  useEffect(() => {
-    const getUsers = async () => {
-      const usersCollectionRef = collection(database, 'users')
-      const data = await getDocs(usersCollectionRef)
-      console.log(authenticatedUser)
-      const filteredUsers = data.docs
-        .map(doc => ({ ...doc.data(), id: doc.id }))
-        .filter(user => authenticatedUser.friendIds.includes(user.id))
+  const getUsers = async () => {
+    const usersCollectionRef = collection(database, 'users')
+    const data = await getDocs(usersCollectionRef)
 
-      setUsers(filteredUsers)
-    }
-    getUsers()
-  }, [])
+    const filteredUsers = data.docs
+      .map(doc => ({ ...doc.data(), id: doc.id }))
+      .filter(user => authenticatedUser.friendIds.includes(user.id))
+
+    setUsers(filteredUsers)
+  }
+
+  // useEffect(() => {
+  //   const getUsers = async () => {
+  //     const usersCollectionRef = collection(database, 'users')
+  //     const data = await getDocs(usersCollectionRef)
+
+  //     const filteredUsers = data.docs
+  //       .map(doc => ({ ...doc.data(), id: doc.id }))
+  //       .filter(user => authenticatedUser.friendIds.includes(user.id))
+
+  //     setUsers(filteredUsers)
+  //   }
+  //   getUsers()
+  // }, [authenticatedUser])
 
   const handleChange = event => {
     setPersonName(
@@ -56,6 +69,7 @@ export default function MainDashboard() {
 
   const creategroup = async () => {
     setOpen(false)
+    getUsers()
     const grpUser = personName.map(name => ({ uid: name }))
     grpUser.push({ uid: authenticatedUser.id })
     let item = {
@@ -65,8 +79,12 @@ export default function MainDashboard() {
       members: grpUser
     }
 
+    console.log(authenticatedUser)
+    console.log(item)
+
     const docRef = await addDoc(collection(database, 'groups'), item)
     console.log('Document written with ID: ', docRef.id)
+    navigate('/')
   }
 
   return (
