@@ -12,8 +12,10 @@ import {
 } from '@mui/material'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import { Link, useNavigate } from 'react-router-dom'
+
 import MainLogo from '../components/sidebar/MainLogo'
 import { useAuth } from '../contexts/AuthContext'
+import routesPath from '../routes/RoutesPath'
 
 export default function Login() {
   const { login } = useAuth()
@@ -87,10 +89,10 @@ export default function Login() {
           </Button>
           <Grid container>
             <Grid item xs>
-              <Link to='/forgot-password'>Forgot Password?</Link>
+              <Link to={routesPath.forgotPassword}>Forgot Password?</Link>
             </Grid>
             <Grid item>
-              <Link to='/signup'>{"Don't have an account? Sign Up"}</Link>
+              <Link to={routesPath.signUp}>{"Don't have an account? Sign Up"}</Link>
             </Grid>
           </Grid>
         </Box>

@@ -2,69 +2,62 @@
 /* eslint-disable max-lines */
 /* eslint-disable react/jsx-no-useless-fragment */
 import React, { useEffect, useState } from 'react'
-import Events from './Events'
-import './index.css'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
-import AddIcon from '@mui/icons-material/Add'
-import Box from '@mui/material/Box'
-import Modal from '@mui/material/Modal'
-import TextField from '@mui/material/TextField'
-import OutlinedInput from '@mui/material/OutlinedInput'
-import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
 import BalanceIcon from '@mui/icons-material/Balance'
-import Final from './Final'
-//import { useNavigate } from 'react-router-dom'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
+import AddIcon from '@mui/icons-material/Add'
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Modal,
+  OutlinedInput,
+  Select,
+  TextField
+} from '@mui/material'
 
-export default function Organizations({ name, id }) {
-  const [expenses, setExpenses] = useState()
-  //const history = useNavigate()
+import { database } from '../../firebase'
+import { collection, getDocs, doc, setDoc, addDoc } from 'firebase/firestore'
+import Events from './Events'
+
+import './index.css'
+
+export default function Organizations({ name, id, members, expenseIds, totalExpense }) {
+  const [expenses, setExpenses] = useState([])
   const [open, setOpen] = useState(false)
-  const [split, setSplit] = useState(false)
-  const [totalExpense, setTotalExpense] = useState(0)
-  const [finalSplit, setFinalSplit] = useState([])
-  const [users, setUsers] = useState()
-  //const curruser = JSON.parse(localStorage.getItem('user-info'))
+  const [users, setUsers] = useState([])
 
   const [expName, setExpName] = useState()
   const [expAmt, setExpAmt] = useState()
   const [expPaidBy, setExpPaidBy] = useState()
   const [expGrp, setExpGrp] = useState()
   const [personName, setPersonName] = useState([])
-  const [selectUsers, setSelectUsers] = useState([])
-  selectUsers
-  var usrSplitBtw = []
+
+  const getExpenses = async () => {
+    const expensesCollectionRef = collection(database, 'expenses')
+    const data = await getDocs(expensesCollectionRef)
+    const filteredExpenses = data.docs
+      .map(doc => ({ ...doc.data(), id: doc.id }))
+      .filter(expense => expenseIds.includes(expense.id))
+    setExpenses(filteredExpenses)
+  }
+
+  const getMembers = async () => {
+    const usersCollectionRef = collection(database, 'users')
+    const data = await getDocs(usersCollectionRef)
+
+    const filteredMembers = data.docs
+      .map(doc => ({ ...doc.data(), id: doc.id }))
+      .filter(user => members.some(member => member.uid == user.id))
+    setUsers(filteredMembers)
+  }
 
   useEffect(() => {
-    async function fetchData() {
-      let expenses = await fetch(`https://splitwise-apiv1.herokuapp.com/groups/expenses/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        }
-      })
-      expenses = await expenses.json()
-      setExpenses(expenses)
-      for (var i = 0; i < expenses.length; i++) {
-        setTotalExpense(totalExpense + expenses[i].expAmt)
-      }
-      if (users == null) {
-        let paidby = await fetch(`https://splitwise-apiv1.herokuapp.com/groups/users/${id}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-          }
-        })
-        paidby = await paidby.json()
-        setUsers(paidby)
-        setSelectUsers(paidby)
-      }
-    }
-    fetchData()
+    getExpenses()
+  }, [])
+
+  useEffect(() => {
+    getMembers()
   }, [])
 
   const handleChange = event => {
@@ -74,35 +67,8 @@ export default function Organizations({ name, id }) {
   }
 
   const openBox = grpId => {
-    setSplit(false)
     setExpGrp(grpId)
     setOpen(true)
-  }
-
-  async function gameOn() {
-    if (split) {
-      setSplit(false)
-    } else {
-      try {
-        let paidby = await fetch(`https://splitwise-apiv1.herokuapp.com/FinalSplit/${id}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-          }
-        })
-        paidby = await paidby.json()
-        if (paidby != null) {
-          setFinalSplit(paidby)
-          //console.log(paidby)
-          setSplit(true)
-        } else {
-          return
-        }
-      } catch (e) {
-        //console.log(e)
-      }
-    }
   }
 
   const style = {
@@ -115,12 +81,11 @@ export default function Organizations({ name, id }) {
     boxShadow: 24,
     p: 4
   }
+
   async function createExpense() {
     setOpen(false)
-    //credentials
-    for (var i = 0; i < personName.length; i++) {
-      usrSplitBtw.push({ id: personName[i] })
-    }
+
+    const usrSplitBtw = personName.map(name => ({ id: name }))
 
     let item = {
       expName: expName,
@@ -129,288 +94,147 @@ export default function Organizations({ name, id }) {
       usrSplitBtw: usrSplitBtw,
       expGrp: { id: expGrp }
     }
-    //console.log(item)
 
-    try {
-      let result = await fetch('https://splitwise-apiv1.herokuapp.com/expense/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(item)
-      })
-      result = await result.json()
-      if (result != null || !result.error) {
-        setOpen(false)
-      } else {
-        return
-      }
-    } catch (e) {
-      //console.log(e)
-    }
+    const ExpenseRef = await addDoc(collection(database, 'expenses'), item)
+
+    const groupRef = doc(database, 'groups', id)
+    setDoc(groupRef, { expenseIds: expenseIds.concat(String(ExpenseRef.id)) }, { merge: true })
     window.location.reload()
   }
 
   return (
-    <>
-      {split ? (
-        <>
-          <div className='org-main'>
-            <div className='org-heading'>
-              <p className='org-name'>{name}</p>
-              <div className='org-icons'>
-                <div
-                  onClick={() => {
-                    gameOn()
-                  }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <BalanceIcon style={{ fontSize: '20px' }} />
-                </div>
-                <div
-                  onClick={() => {
-                    openBox(id)
-                  }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <AddIcon style={{ fontSize: '20px' }} />
-                </div>
-                <div
-                  onClick={() => {
-                    deleteGroup(id)
-                  }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <DeleteOutlineIcon style={{ fontSize: '20px' }} />
-                </div>
-              </div>
-            </div>
-
-            {finalSplit?.map(post => {
-              return (
-                <>
-                  <Final payto={post.finalPayTo} payby={post.finalPayBy} amt={post.finalAmt} />
-                </>
-              )
-            })}
-            <Modal
-              open={open}
-              onClose={() => {
-                setOpen(false)
-              }}
-              aria-labelledby='modal-modal-title'
-              aria-describedby='modal-modal-description'
-            >
-              <Box sx={style}>
-                <p>Add Expense</p>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    flexWrap: 'wrap',
-                    gap: '10px'
-                  }}
-                >
-                  <TextField
-                    label='Name'
-                    onChange={e => {
-                      setExpName(e.target.value)
-                    }}
-                  />
-                  <TextField
-                    label='Amount'
-                    onChange={e => {
-                      setExpAmt(e.target.value)
-                    }}
-                  />
-                  <Select
-                    labelId='demo-simple-select-label'
-                    id='demo-simple-select'
-                    value={expPaidBy}
-                    onChange={e => {
-                      setExpPaidBy(e.target.value)
-                    }}
-                    input={<OutlinedInput placeholder='Members' />}
-                    style={{ width: '100%' }}
-                  >
-                    {users?.map(name => (
-                      <MenuItem key={name.id} value={name.id}>
-                        {name.userFirstName}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  <Select
-                    labelId='demo-multiple-name-label'
-                    id='demo-multiple-name'
-                    multiple
-                    value={personName}
-                    onChange={handleChange}
-                    input={<OutlinedInput placeholder='Members' />}
-                    style={{ width: '100%' }}
-                  >
-                    {users?.map(name => (
-                      <MenuItem key={name.id} value={name.id}>
-                        {name.userFirstName}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </div>
-                <div
-                  style={{
-                    textAlign: 'center',
-                    backgroundColor: '#674fa3',
-                    borderRadius: '0.5vw',
-                    padding: '2px',
-                    marginTop: '10px',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => {
-                    createExpense()
-                  }}
-                >
-                  <p style={{ color: 'white' }}>Add Expense</p>
-                </div>
-              </Box>
-            </Modal>
-          </div>
-        </>
-      ) : (
-        <div className='org-main'>
-          <div className='org-heading'>
-            <p className='org-name'>{name}</p>
-            <div className='org-icons'>
-              <div
-                onClick={() => {
-                  gameOn()
-                }}
-                style={{ cursor: 'pointer' }}
-              >
-                <BalanceIcon style={{ fontSize: '20px' }} />
-              </div>
-              <div
-                onClick={() => {
-                  openBox(id)
-                }}
-                style={{ cursor: 'pointer' }}
-              >
-                <AddIcon style={{ fontSize: '20px' }} />
-              </div>
-              <div>
-                <p>${totalExpense}</p>
-              </div>
-              <div
-                onClick={() => {
-                  deleteGroup(id)
-                }}
-                style={{ cursor: 'pointer' }}
-              >
-                <DeleteOutlineIcon style={{ fontSize: '20px' }} />
-              </div>
-            </div>
-          </div>
-          {expenses?.map(post => {
-            return (
-              <>
-                <Events
-                  name={post.expName}
-                  key={post.id}
-                  paidBy={post.expPaidBy}
-                  amt={post.expAmt}
-                />
-              </>
-            )
-          })}
-          <Modal
-            open={open}
-            onClose={() => {
-              setOpen(false)
+    <div className='org-main'>
+      <div className='org-heading'>
+        <p className='org-name'>{name}</p>
+        <div className='org-icons'>
+          <div
+            onClick={() => {
+              gameOn()
             }}
-            aria-labelledby='modal-modal-title'
-            aria-describedby='modal-modal-description'
+            style={{ cursor: 'pointer' }}
           >
-            <Box sx={style}>
-              <p>Add Expense</p>
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  flexWrap: 'wrap',
-                  gap: '10px'
-                }}
-              >
-                <TextField
-                  label='Name'
-                  onChange={e => {
-                    setExpName(e.target.value)
-                  }}
-                />
-                <TextField
-                  label='Amount'
-                  onChange={e => {
-                    setExpAmt(e.target.value)
-                  }}
-                />
-                <FormControl style={{ width: '100%' }}>
-                  <InputLabel>Paid By</InputLabel>
-                  <Select
-                    labelId='demo-simple-select-label'
-                    id='demo-simple-select'
-                    value={expPaidBy}
-                    onChange={e => {
-                      setExpPaidBy(e.target.value)
-                    }}
-                    input={<OutlinedInput />}
-                    style={{ width: '100%' }}
-                  >
-                    {users?.map(name => (
-                      <MenuItem key={name.id} value={name.id}>
-                        {name.userFirstName}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <FormControl style={{ width: '100%' }}>
-                  <InputLabel>Split Between</InputLabel>
-                  <Select
-                    labelId='demo-multiple-name-label'
-                    id='demo-multiple-name'
-                    multiple
-                    value={personName}
-                    onChange={handleChange}
-                    input={<OutlinedInput />}
-                    style={{ width: '100%' }}
-                  >
-                    {users?.map(name =>
-                      name.id != expPaidBy ? (
-                        <MenuItem key={name.id} value={name.id}>
-                          {name.userFirstName}
-                        </MenuItem>
-                      ) : (
-                        <></>
-                      )
-                    )}
-                  </Select>
-                </FormControl>
-              </div>
-              <div
-                style={{
-                  textAlign: 'center',
-                  backgroundColor: '#674fa3',
-                  borderRadius: '0.5vw',
-                  padding: '2px',
-                  marginTop: '10px',
-                  cursor: 'pointer'
-                }}
-                onClick={() => {
-                  createExpense()
-                }}
-              >
-                <p style={{ color: 'white' }}>Add Expense</p>
-              </div>
-            </Box>
-          </Modal>
+            <BalanceIcon style={{ fontSize: '20px' }} />
+          </div>
+          <div
+            onClick={() => {
+              openBox(id)
+            }}
+            style={{ cursor: 'pointer' }}
+          >
+            <AddIcon style={{ fontSize: '20px' }} />
+          </div>
+          <div>
+            <p>${totalExpense}</p>
+          </div>
+          <div
+            onClick={() => {
+              deleteGroup(id)
+            }}
+            style={{ cursor: 'pointer' }}
+          >
+            <DeleteOutlineIcon style={{ fontSize: '20px' }} />
+          </div>
         </div>
-      )}
-    </>
+      </div>
+      {expenses?.map(expense => {
+        return (
+          <Events
+            name={expense.expName}
+            amt={expense.expAmt}
+            paidBy={expense.expPaidBy}
+            key={expense.id}
+          />
+        )
+      })}
+      <Modal
+        open={open}
+        onClose={() => {
+          setOpen(false)
+        }}
+        aria-labelledby='modal-modal-title'
+        aria-describedby='modal-modal-description'
+      >
+        <Box sx={style}>
+          <p>Add Expense</p>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: '10px'
+            }}
+          >
+            <TextField
+              label='Name'
+              onChange={e => {
+                setExpName(e.target.value)
+              }}
+            />
+            <TextField
+              label='Amount'
+              onChange={e => {
+                setExpAmt(e.target.value)
+              }}
+            />
+            <FormControl style={{ width: '100%' }}>
+              <InputLabel>Paid By</InputLabel>
+              <Select
+                labelId='demo-simple-select-label'
+                id='demo-simple-select'
+                value={expPaidBy}
+                onChange={e => {
+                  setExpPaidBy(e.target.value)
+                }}
+                input={<OutlinedInput />}
+                style={{ width: '100%' }}
+              >
+                {users?.map(user => (
+                  <MenuItem key={user.id} value={user.id}>
+                    {user.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl style={{ width: '100%' }}>
+              <InputLabel>Split Between</InputLabel>
+              <Select
+                labelId='demo-multiple-name-label'
+                id='demo-multiple-name'
+                multiple
+                value={personName}
+                onChange={handleChange}
+                input={<OutlinedInput />}
+                style={{ width: '100%' }}
+              >
+                {users?.map(user =>
+                  user.id != expPaidBy ? (
+                    <MenuItem key={user.id} value={user.id}>
+                      {user.name}
+                    </MenuItem>
+                  ) : (
+                    <></>
+                  )
+                )}
+              </Select>
+            </FormControl>
+          </div>
+          <div
+            style={{
+              textAlign: 'center',
+              backgroundColor: '#674fa3',
+              borderRadius: '0.5vw',
+              padding: '2px',
+              marginTop: '10px',
+              cursor: 'pointer'
+            }}
+            onClick={() => {
+              createExpense()
+            }}
+          >
+            <p style={{ color: 'white' }}>Add Expense</p>
+          </div>
+        </Box>
+      </Modal>
+    </div>
   )
 }

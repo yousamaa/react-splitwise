@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState({})
   const [loading, setLoading] = useState(true)
   const [groups, setGroups] = useState([])
-  const [user, setUser] = useState({})
+  const [authenticatedUser, setAuthenticatedUser] = useState({})
 
   const signup = (name, email, password) => {
     createUserWithEmailAndPassword(auth, email, password).then(result => {
@@ -42,6 +42,27 @@ export const AuthProvider = ({ children }) => {
 
   const updatePassword = password => newPassword(currentUser, password)
 
+  const getUser = async () => {
+    const userDocRef = doc(database, 'users', String(currentUser.uid))
+    const docSnap = await getDoc(userDocRef)
+    setAuthenticatedUser({ ...docSnap.data(), id: docSnap.id })
+  }
+
+  const getGroups = async () => {
+    const groupsCollectionRef = collection(database, 'groups')
+    const data = await getDocs(groupsCollectionRef)
+
+    const filteredGroups = data.docs
+      .map(doc => ({ ...doc.data(), id: doc.id }))
+      .filter(
+        group =>
+          group.members &&
+          Array.isArray(group.members) &&
+          group.members.some(member => member.uid && member.uid == currentUser.uid)
+      )
+    setGroups(filteredGroups)
+  }
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, user => {
       setCurrentUser(user)
@@ -51,22 +72,10 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    const getUser = async () => {
-      const userDocRef = doc(database, 'users', String(currentUser.uid))
-      const docSnap = await getDoc(userDocRef)
-      setUser({ ...docSnap.data() })
-    }
     getUser()
-    const getGroups = async () => {
-      const groupsCollectionRef = collection(database, 'users', String(currentUser.uid), 'groups')
-      const data = await getDocs(groupsCollectionRef)
-      setGroups(
-        data.docs.map(doc => ({
-          ...doc.data(),
-          id: doc.id
-        }))
-      )
-    }
+  }, [currentUser])
+
+  useEffect(() => {
     getGroups()
   }, [currentUser])
 
@@ -78,7 +87,7 @@ export const AuthProvider = ({ children }) => {
     resetPassword,
     updateEmail,
     updatePassword,
-    user,
+    authenticatedUser,
     groups
   }
 

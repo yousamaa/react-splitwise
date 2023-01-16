@@ -4,12 +4,13 @@ import MainDashboard from '../components/MainDashboard'
 
 import styled from 'styled-components'
 
+const DashboardMain = styled.div`
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+`
+
 const Dashboard = () => {
-  const DashboardMain = styled.div`
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-  `
   return (
     <DashboardMain>
       <Sidebar />

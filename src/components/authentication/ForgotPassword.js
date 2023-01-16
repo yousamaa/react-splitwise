@@ -15,6 +15,7 @@ import { Link } from 'react-router-dom'
 
 import { useAuth } from '../../contexts/AuthContext'
 import MainLogo from '../sidebar/MainLogo'
+import routesPath from '../../routes/RoutesPath'
 
 const ForgotPassword = () => {
   const { resetPassword } = useAuth()
@@ -80,7 +81,7 @@ const ForgotPassword = () => {
             Reset Password
           </Button>
           <Grid container>
-            <Link to='/signup'>{'Need an account? Sign Up'}</Link>
+            <Link to={routesPath.signUp}>{'Need an account? Sign Up'}</Link>
           </Grid>
         </Box>
       </Box>

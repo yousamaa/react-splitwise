@@ -1,12 +1,13 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
 import React from 'react'
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
 
 import FilledBox from './FilledBox'
-import OutlineBox from './OutlineBox'
+//import OutlineBox from './OutlineBox'
 
 import './index.css'
 
-// eslint-disable-next-line react/prop-types
 export default function Events({ name, paidBy, amt }) {
   return (
     <div className='event-main'>
@@ -14,7 +15,9 @@ export default function Events({ name, paidBy, amt }) {
         <p className='event-head'>{name}</p>
         <div className='event-icons'>
           <FilledBox text={`$${amt}`} />
-          <OutlineBox id={paidBy} />
+          {/* {paidBy?.map(payee => {
+            return <OutlineBox key={payee.index} name={payee} />
+          })} */}
         </div>
       </div>
       <ArrowForwardIosIcon />
