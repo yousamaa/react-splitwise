@@ -38,9 +38,7 @@ const CreateGroup = ({ open, setOpen }) => {
       const usersCollectionRef = collection(database, 'users')
       const data = await getDocs(usersCollectionRef)
 
-      const filteredUsers = data.docs
-        .map(doc => ({ ...doc.data(), id: doc.id }))
-        .filter(user => authenticatedUser && authenticatedUser.friendIds.includes(user.id))
+      const filteredUsers = data.docs.map(doc => ({ ...doc.data(), id: doc.id }))
 
       setUsers(filteredUsers)
     }
