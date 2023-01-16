@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 /* eslint-disable max-lines */
 /* eslint-disable react/jsx-no-useless-fragment */

@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState({})
   const [loading, setLoading] = useState(true)
   const [groups, setGroups] = useState([])
-  const [user, setUser] = useState({})
+  const [authenticatedUser, setAuthenticatedUser] = useState({})
 
   const signup = (name, email, password) => {
     createUserWithEmailAndPassword(auth, email, password).then(result => {
@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
   const getUser = async () => {
     const userDocRef = doc(database, 'users', String(currentUser.uid))
     const docSnap = await getDoc(userDocRef)
-    setUser({ ...docSnap.data() })
+    setAuthenticatedUser({ ...docSnap.data(), id: docSnap.id })
   }
 
   const getGroups = async () => {
@@ -87,7 +87,7 @@ export const AuthProvider = ({ children }) => {
     resetPassword,
     updateEmail,
     updatePassword,
-    user,
+    authenticatedUser,
     groups
   }
 

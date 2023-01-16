@@ -66,7 +66,7 @@ const LogoutButton = styled.div`
 `
 
 const Sidebar = () => {
-  const { user, groups, logout } = useAuth()
+  const { authenticatedUser, groups, logout } = useAuth()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
@@ -79,7 +79,7 @@ const Sidebar = () => {
       <MainLogo />
       <Sidebaritem>
         <UserItem
-          name={user.name}
+          name={authenticatedUser.name}
           icon={<PersonOutlineIcon style={{ color: 'white', fontSize: '30px' }} />}
         ></UserItem>
         <Sidebaritems>
