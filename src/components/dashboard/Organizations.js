@@ -17,8 +17,7 @@ import {
 } from '@mui/material'
 
 import { database } from '../../firebase'
-import { collection, getDocs } from 'firebase/firestore'
-import Final from './Final'
+import { collection, getDocs, doc, setDoc, addDoc } from 'firebase/firestore'
 import Events from './Events'
 
 import './index.css'
@@ -26,8 +25,6 @@ import './index.css'
 export default function Organizations({ name, id, members, expenseIds, totalExpense }) {
   const [expenses, setExpenses] = useState([])
   const [open, setOpen] = useState(false)
-  const [split, setSplit] = useState(false)
-  const [finalSplit, setFinalSplit] = useState([])
   const [users, setUsers] = useState([])
 
   const [expName, setExpName] = useState()
@@ -70,35 +67,8 @@ export default function Organizations({ name, id, members, expenseIds, totalExpe
   }
 
   const openBox = grpId => {
-    setSplit(false)
     setExpGrp(grpId)
     setOpen(true)
-  }
-
-  async function gameOn() {
-    if (split) {
-      setSplit(false)
-    } else {
-      try {
-        let paidby = await fetch(`https://splitwise-apiv1.herokuapp.com/FinalSplit/${id}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-          }
-        })
-        paidby = await paidby.json()
-        if (paidby != null) {
-          setFinalSplit(paidby)
-          //console.log(paidby)
-          setSplit(true)
-        } else {
-          return
-        }
-      } catch (e) {
-        //console.log(e)
-      }
-    }
   }
 
   const style = {
@@ -111,6 +81,7 @@ export default function Organizations({ name, id, members, expenseIds, totalExpe
     boxShadow: 24,
     p: 4
   }
+
   async function createExpense() {
     setOpen(false)
 
@@ -124,270 +95,146 @@ export default function Organizations({ name, id, members, expenseIds, totalExpe
       expGrp: { id: expGrp }
     }
 
-    const docRef = await addDoc(collection(database, 'expenses'), item)
-    console.log('Document written with ID: ', docRef.id)
+    const ExpenseRef = await addDoc(collection(database, 'expenses'), item)
+
+    const groupRef = doc(database, 'groups', id)
+    setDoc(groupRef, { expenseIds: expenseIds.concat(String(ExpenseRef.id)) }, { merge: true })
+    window.location.reload()
   }
 
   return (
-    <>
-      {split ? (
-        <>
-          <div className='org-main'>
-            <div className='org-heading'>
-              <p className='org-name'>{name}</p>
-              <div className='org-icons'>
-                <div
-                  onClick={() => {
-                    gameOn()
-                  }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <BalanceIcon style={{ fontSize: '20px' }} />
-                </div>
-                <div
-                  onClick={() => {
-                    openBox(id)
-                  }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <AddIcon style={{ fontSize: '20px' }} />
-                </div>
-                <div
-                  onClick={() => {
-                    deleteGroup(id)
-                  }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <DeleteOutlineIcon style={{ fontSize: '20px' }} />
-                </div>
-              </div>
-            </div>
-
-            {finalSplit?.map(post => {
-              return (
-                <>
-                  <Final payto={post.finalPayTo} payby={post.finalPayBy} amt={post.finalAmt} />
-                </>
-              )
-            })}
-            <Modal
-              open={open}
-              onClose={() => {
-                setOpen(false)
-              }}
-              aria-labelledby='modal-modal-title'
-              aria-describedby='modal-modal-description'
-            >
-              <Box sx={style}>
-                <p>Add Expense</p>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    flexWrap: 'wrap',
-                    gap: '10px'
-                  }}
-                >
-                  <TextField
-                    label='Name'
-                    onChange={e => {
-                      setExpName(e.target.value)
-                    }}
-                  />
-                  <TextField
-                    label='Amount'
-                    onChange={e => {
-                      setExpAmt(e.target.value)
-                    }}
-                  />
-                  <Select
-                    labelId='demo-simple-select-label'
-                    id='demo-simple-select'
-                    value={expPaidBy}
-                    onChange={e => {
-                      setExpPaidBy(e.target.value)
-                    }}
-                    input={<OutlinedInput placeholder='Members' />}
-                    style={{ width: '100%' }}
-                  >
-                    {users?.map(user => (
-                      <MenuItem key={user.id} value={user.id}>
-                        {user.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  <Select
-                    labelId='demo-multiple-name-label'
-                    id='demo-multiple-name'
-                    multiple
-                    value={personName}
-                    onChange={handleChange}
-                    input={<OutlinedInput placeholder='Members' />}
-                    style={{ width: '100%' }}
-                  >
-                    {users?.map(user => (
-                      <MenuItem key={user.id} value={user.id}>
-                        {user.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </div>
-                <div
-                  style={{
-                    textAlign: 'center',
-                    backgroundColor: '#674fa3',
-                    borderRadius: '0.5vw',
-                    padding: '2px',
-                    marginTop: '10px',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => {
-                    createExpense()
-                  }}
-                >
-                  <p style={{ color: 'white' }}>Add Expense</p>
-                </div>
-              </Box>
-            </Modal>
-          </div>
-        </>
-      ) : (
-        <div className='org-main'>
-          <div className='org-heading'>
-            <p className='org-name'>{name}</p>
-            <div className='org-icons'>
-              <div
-                onClick={() => {
-                  gameOn()
-                }}
-                style={{ cursor: 'pointer' }}
-              >
-                <BalanceIcon style={{ fontSize: '20px' }} />
-              </div>
-              <div
-                onClick={() => {
-                  openBox(id)
-                }}
-                style={{ cursor: 'pointer' }}
-              >
-                <AddIcon style={{ fontSize: '20px' }} />
-              </div>
-              <div>
-                <p>${totalExpense}</p>
-              </div>
-              <div
-                onClick={() => {
-                  deleteGroup(id)
-                }}
-                style={{ cursor: 'pointer' }}
-              >
-                <DeleteOutlineIcon style={{ fontSize: '20px' }} />
-              </div>
-            </div>
-          </div>
-          {expenses?.map(expense => {
-            return (
-              <>
-                <Events
-                  name={expense.expName}
-                  amt={expense.expAmt}
-                  paidBy={expense.expPaidBy}
-                  key={expense.id}
-                />
-              </>
-            )
-          })}
-          <Modal
-            open={open}
-            onClose={() => {
-              setOpen(false)
+    <div className='org-main'>
+      <div className='org-heading'>
+        <p className='org-name'>{name}</p>
+        <div className='org-icons'>
+          <div
+            onClick={() => {
+              gameOn()
             }}
-            aria-labelledby='modal-modal-title'
-            aria-describedby='modal-modal-description'
+            style={{ cursor: 'pointer' }}
           >
-            <Box sx={style}>
-              <p>Add Expense</p>
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  flexWrap: 'wrap',
-                  gap: '10px'
-                }}
-              >
-                <TextField
-                  label='Name'
-                  onChange={e => {
-                    setExpName(e.target.value)
-                  }}
-                />
-                <TextField
-                  label='Amount'
-                  onChange={e => {
-                    setExpAmt(e.target.value)
-                  }}
-                />
-                <FormControl style={{ width: '100%' }}>
-                  <InputLabel>Paid By</InputLabel>
-                  <Select
-                    labelId='demo-simple-select-label'
-                    id='demo-simple-select'
-                    value={expPaidBy}
-                    onChange={e => {
-                      setExpPaidBy(e.target.value)
-                    }}
-                    input={<OutlinedInput />}
-                    style={{ width: '100%' }}
-                  >
-                    {users?.map(user => (
-                      <MenuItem key={user.id} value={user.id}>
-                        {user.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <FormControl style={{ width: '100%' }}>
-                  <InputLabel>Split Between</InputLabel>
-                  <Select
-                    labelId='demo-multiple-name-label'
-                    id='demo-multiple-name'
-                    multiple
-                    value={personName}
-                    onChange={handleChange}
-                    input={<OutlinedInput />}
-                    style={{ width: '100%' }}
-                  >
-                    {users?.map(user =>
-                      user.id != expPaidBy ? (
-                        <MenuItem key={user.id} value={user.id}>
-                          {user.name}
-                        </MenuItem>
-                      ) : (
-                        <></>
-                      )
-                    )}
-                  </Select>
-                </FormControl>
-              </div>
-              <div
-                style={{
-                  textAlign: 'center',
-                  backgroundColor: '#674fa3',
-                  borderRadius: '0.5vw',
-                  padding: '2px',
-                  marginTop: '10px',
-                  cursor: 'pointer'
-                }}
-                onClick={() => {
-                  createExpense()
-                }}
-              >
-                <p style={{ color: 'white' }}>Add Expense</p>
-              </div>
-            </Box>
-          </Modal>
+            <BalanceIcon style={{ fontSize: '20px' }} />
+          </div>
+          <div
+            onClick={() => {
+              openBox(id)
+            }}
+            style={{ cursor: 'pointer' }}
+          >
+            <AddIcon style={{ fontSize: '20px' }} />
+          </div>
+          <div>
+            <p>${totalExpense}</p>
+          </div>
+          <div
+            onClick={() => {
+              deleteGroup(id)
+            }}
+            style={{ cursor: 'pointer' }}
+          >
+            <DeleteOutlineIcon style={{ fontSize: '20px' }} />
+          </div>
         </div>
-      )}
-    </>
+      </div>
+      {expenses?.map(expense => {
+        return (
+          <Events
+            name={expense.expName}
+            amt={expense.expAmt}
+            paidBy={expense.expPaidBy}
+            key={expense.id}
+          />
+        )
+      })}
+      <Modal
+        open={open}
+        onClose={() => {
+          setOpen(false)
+        }}
+        aria-labelledby='modal-modal-title'
+        aria-describedby='modal-modal-description'
+      >
+        <Box sx={style}>
+          <p>Add Expense</p>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: '10px'
+            }}
+          >
+            <TextField
+              label='Name'
+              onChange={e => {
+                setExpName(e.target.value)
+              }}
+            />
+            <TextField
+              label='Amount'
+              onChange={e => {
+                setExpAmt(e.target.value)
+              }}
+            />
+            <FormControl style={{ width: '100%' }}>
+              <InputLabel>Paid By</InputLabel>
+              <Select
+                labelId='demo-simple-select-label'
+                id='demo-simple-select'
+                value={expPaidBy}
+                onChange={e => {
+                  setExpPaidBy(e.target.value)
+                }}
+                input={<OutlinedInput />}
+                style={{ width: '100%' }}
+              >
+                {users?.map(user => (
+                  <MenuItem key={user.id} value={user.id}>
+                    {user.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl style={{ width: '100%' }}>
+              <InputLabel>Split Between</InputLabel>
+              <Select
+                labelId='demo-multiple-name-label'
+                id='demo-multiple-name'
+                multiple
+                value={personName}
+                onChange={handleChange}
+                input={<OutlinedInput />}
+                style={{ width: '100%' }}
+              >
+                {users?.map(user =>
+                  user.id != expPaidBy ? (
+                    <MenuItem key={user.id} value={user.id}>
+                      {user.name}
+                    </MenuItem>
+                  ) : (
+                    <></>
+                  )
+                )}
+              </Select>
+            </FormControl>
+          </div>
+          <div
+            style={{
+              textAlign: 'center',
+              backgroundColor: '#674fa3',
+              borderRadius: '0.5vw',
+              padding: '2px',
+              marginTop: '10px',
+              cursor: 'pointer'
+            }}
+            onClick={() => {
+              createExpense()
+            }}
+          >
+            <p style={{ color: 'white' }}>Add Expense</p>
+          </div>
+        </Box>
+      </Modal>
+    </div>
   )
 }
