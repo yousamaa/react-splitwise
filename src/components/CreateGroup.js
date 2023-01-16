@@ -10,7 +10,6 @@ import {
   TextField
 } from '@mui/material'
 import { collection, getDocs, addDoc } from 'firebase/firestore'
-import { useNavigate } from 'react-router-dom'
 
 import { database } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
@@ -23,7 +22,6 @@ const CreateGroup = ({ open, setOpen }) => {
   const [personName, setPersonName] = useState([])
   const [grpName, setGrpName] = useState('')
   const { authenticatedUser } = useAuth()
-  const navigate = useNavigate()
   const style = {
     position: 'absolute',
     top: '50%',
@@ -68,7 +66,7 @@ const CreateGroup = ({ open, setOpen }) => {
     }
 
     await addDoc(collection(database, 'groups'), item)
-    navigate('/')
+    window.location.reload()
   }
 
   return (
